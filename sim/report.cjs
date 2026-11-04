@@ -3,6 +3,7 @@ function harness(seed){const elements=new Map(),el=()=>({hidden:false,textConten
 const N=+(process.argv[2]||30),IQ=process.argv[3],res=[];
 for(let g=0;g<N;g++){const ctx=harness(g*11+5);vm.runInContext(`role=${g%5};selected=${(g*13)%80};start()`,ctx);const api=ctx.window.ESPORTS;let d=0;
  if(IQ)vm.runInContext(`window.ESPORTS.state.actors.forEach(a=>a.iq=${IQ})`,ctx);
+ if(!process.env.RAWPLAYER)vm.runInContext(`{const A=window.ESPORTS.state.actors,p=A.find(a=>a.player),o=A.filter(a=>!a.player);p.power=o.reduce((x,a)=>x+a.power,0)/o.length;}`,ctx);
  let jgHome=0,jgSamples=0,fb=null;
  for(let n=0;n<16000&&!api.state.done;n++){const s=api.state;if(s.decision&&process.env.NODEC){s.decision=null;s.next=s.time+210;}
   if(s.decision){const ch=s.decision.choices,sur=s.decision.type==='surrender'||/投降/.test(s.decision.title||'');const c=sur?ch[1]:ch[Math.floor(Math.random()*ch.length)];s.decision=null;c.run();s.next=s.time+210;}api.tick(.25);

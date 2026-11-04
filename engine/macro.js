@@ -173,13 +173,14 @@ const CLASS_ADV={法師:{刺客:.14,鬥士:.1,射手:.01,坦克:.3,輔助:.26},�
 const clsOf=a=>(ROSTER[a.heroIndex]?.style||'鬥士').split('・')[0];
 const CALIB=()=>globalThis.LANE_CALIB===true; // 校正模式：關掉相剋，只記錄引擎原本的對線勝負
 function adv(a,b){if(CALIB())return 0;const x=clsOf(a),y=clsOf(b);return (CLASS_ADV[x]?.[y]??-(CLASS_ADV[y]?.[x]??0));}
-function skillOf(a){const m=heroes[a.heroIndex]?.mastery;return a.player&&Number.isFinite(m)?Math.min(1,m/100):iqOf(a);}
+// 熟練度與版本強度已經反映在引擎的英雄戰力（power），這裡只看判斷力，避免重複計算
+function skillOf(a){return iqOf(a);}
 const laners=(t,l)=>state.actors.filter(a=>a.team===t&&laneRoles(l).includes(a.role));
 function laneEdges(){const s=state;if(s.laneEdge)return s.laneEdge;const e=[[0,0,0],[0,0,0]];if(CALIB()){s.laneEdge=e;return e;}
  for(let l=0;l<3;l++){const A=laners(0,l),B=laners(1,l);if(!A.length||!B.length)continue;let v=0;
   for(const a of A)for(const b of B)v+=adv(a,b)/(A.length*B.length);
   const avg=(L,f)=>L.reduce((x,u)=>x+f(u),0)/L.length;
-  v+=(avg(A,skillOf)-avg(B,skillOf))*.8+(avg(A,u=>heroes[u.heroIndex]?.power||1)-avg(B,u=>heroes[u.heroIndex]?.power||1))*1.5+(Math.random()-.5)*.35;
+  v+=(avg(A,skillOf)-avg(B,skillOf))*.8+(Math.random()-.5)*.35;
   v=Math.max(-1,Math.min(1,v));e[0][l]=v;e[1][l]=-v;}
  s.laneEdge=e;let best=0;for(let l=1;l<3;l++)if(Math.abs(e[0][l])>Math.abs(e[0][best]))best=l;
  if(Math.abs(e[0][best])>.15){const t=e[0][best]>0?0:1,w=laners(t,best)[0],v=laners(1-t,best)[0];story('matchup',t,{lane:LANE_NAME[best],who:w?.heroName,victim:v?.heroName});}
