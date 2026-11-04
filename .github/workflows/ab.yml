@@ -1,0 +1,40 @@
+name: ab
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: 每組場數
+        default: '100'
+jobs:
+  ab:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: A-new-dec
+            macro: macro.js
+            nodec: ''
+          - name: B-new-nodec
+            macro: macro.js
+            nodec: '1'
+          - name: C-old-dec
+            macro: macro.before.js
+            nodec: ''
+          - name: D-old-nodec
+            macro: macro.before.js
+            nodec: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: run
+        env:
+          MACRO: ${{ matrix.macro }}
+          NODEC: ${{ matrix.nodec }}
+        run: node sim/report.cjs ${{ inputs.games }} 0.7 | tee result.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ab-${{ matrix.name }}
+          path: result.json
