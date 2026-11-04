@@ -12,10 +12,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {name: new-0.7, macro: macro.js, iq: '0.7'}
-          - {name: old-0.7, macro: macro.before.js, iq: '0.7'}
-          - {name: new-0.95, macro: macro.js, iq: '0.95'}
-          - {name: old-0.95, macro: macro.before.js, iq: '0.95'}
+          - {name: blue-first-0.7, macro: macro.js, iq: '0.7', rev: ''}
+          - {name: red-first-0.7, macro: macro.js, iq: '0.7', rev: '1'}
+          - {name: blue-first-0.95, macro: macro.js, iq: '0.95', rev: ''}
+          - {name: red-first-0.95, macro: macro.js, iq: '0.95', rev: '1'}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,6 +25,7 @@ jobs:
         env:
           MACRO: ${{ matrix.macro }}
           NODEC: '1'
+          REVERSE: ${{ matrix.rev }}
         run: node sim/report.cjs ${{ inputs.games }} ${{ matrix.iq }} | tee result.json
       - uses: actions/upload-artifact@v4
         with:
