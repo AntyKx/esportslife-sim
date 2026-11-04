@@ -241,7 +241,7 @@ function laneBehaviour(a,lane,dt,stance){const s=state,foesHero=s.actors.filter(
  if(foesHero.length){const low=foesHero.some(f=>f.hp<f.maxHp*.3)&&a.hp>a.maxHp*.4;const cu=caution(a)*(1-(lead>0?.15:.3)*lead),gv=s.ganking?.[a.team],help=gv&&gv.until>s.time&&foesHero.includes(gv.victim)&&live(gv.victim)&&a.hp>a.maxHp*.35;fight=(help&&fv>.85)||(stance==='trade'&&fv>1.3*cu&&a.hp>a.maxHp*.6)||(fv>1.6*cu&&a.hp>a.maxHp*.5)||(low&&fv>1.05*cu)||(pressing&&fv>.95);
   if(fight){const tgt=help?gv.victim:chooseTarget(a,foesHero);if(underEnemyTower(a,tgt)&&fv<1.7*cu)fight=false;else{FOCUS.set(a,tgt);useSpells(a,tgt,true);bSkill(a,tgt);attack(a,tgt);moveTo(a,tgt,dt,a.range*.85,fv>=1.7);return;}}}
  const caught=a.caughtUntil>s.time;FOCUS.delete(a);if(!caught)escape(a,foesHero);
- const back=(caught?10:stance==='trade'?6:fv<.8?48:22)-(lead>0?lead*14:lead*32),spot=stand(a,lane,back+(a.role===4?14:0));
+ const back=(caught?10:stance==='trade'?6:fv<.8?48:22)-(lead>0?0:lead*32),spot=stand(a,lane,back+(a.role===4?14:0));
  const tower=bStructuresTarget(a);const ownNearTower=s.minions.some(m=>m.team===a.team&&live(m)&&dist(m,tower)<110&&s.structures.includes(tower)&&tower.focus===m||m.team===a.team&&live(m)&&dist(m,tower)<100);
  if(foeMinions.length){bSkill(a,foeMinions[0]);const last=foeMinions.sort((x,y)=>x.hp-y.hp)[0];if(a.role!==4||last.hp<a.attack*2)attack(a,last);}
  else if(tower&&dist(a,tower)<a.range+5&&bCanHit(a,tower)&&ownNearTower&&!foesHero.length)attack(a,tower);
@@ -301,7 +301,7 @@ tick=function(dt){const s=state;if(!s||s.done||s.paused||s.decision)return baseT
 // ---------- player decisions ----------
 const tacticsDamage=bDamage;
 bDamage=function(from,to,amount){const was=to&&to.kind==='hero'&&live(to);
- if(was&&from?.kind==='hero'&&state.time<840&&state.time>LVL1_END&&from.team!==to.team){const l=bLane(from.role);if(from.role!==1&&to.role!==1&&bLane(to.role)===l){const e=laneEdges()[from.team][l]||0;amount*=1+.15*e;}}const r=tacticsDamage.apply(this,arguments);
+ if(was&&from?.kind==='hero'&&state.time<840&&state.time>LVL1_END&&from.team!==to.team){const l=bLane(from.role);if(from.role!==1&&to.role!==1&&bLane(to.role)===l){const e=laneEdges()[from.team][l]||0;amount*=1+.25*e;}}const r=tacticsDamage.apply(this,arguments);
  if(was&&!live(to)&&from&&from.kind==='hero'){const s=state;if(s.time<840&&s.time>LVL1_END+12)(s.earlyKills||(s.earlyKills=[])).push({edge:laneEdges()[from.team][laneOf(to)]||0});if(s.time<LVL1_END+12)story('lvl1kill',from.team,{who:from.heroName,victim:to.heroName});
   else if(s.time<840&&s.time>LVL1_END+12&&!s.actors.some(u=>u!==from&&u.team===from.team&&live(u)&&dist(u,to)<260)){story('solokill',from.team,{who:from.heroName,victim:to.heroName,lane:LANE_NAME[laneOf(to)]});(s.laneKills||(s.laneKills=[])).push({edge:laneEdges()[from.team][laneOf(to)]||0,solo:1});}
   else if(s.time<900&&!(s._dive?.[from.team]>s.time)&&s.structures.some(t=>t.kind==='tower'&&t.team!==from.team&&t.hp>0&&t.tier<2&&dist(t,to)<110)){(s._dive||(s._dive={}))[from.team]=s.time+60;story('dive',from.team,{who:from.heroName,victim:to.heroName});}}
