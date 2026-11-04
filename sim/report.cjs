@@ -3,6 +3,8 @@ function harness(seed){const elements=new Map(),el=()=>({hidden:false,textConten
 const N=+(process.argv[2]||30),IQ=process.argv[3],res=[];
 for(let g=0;g<N;g++){const ctx=harness(g*11+5);vm.runInContext(`role=${g%5};{const pool=ROSTER.map((h,i)=>[h,i]).filter(([h])=>h.role===role).map(x=>x[1]);selected=pool[${g*7}%pool.length];}start()`,ctx);const api=ctx.window.ESPORTS;let d=0;
  if(IQ)vm.runInContext(`window.ESPORTS.state.actors.forEach(a=>a.iq=${IQ})`,ctx);
+ if(process.env.MIRROR)vm.runInContext(`{const A=window.ESPORTS.state.actors;for(const r of A.filter(a=>a.team===1)){const b=A.find(a=>a.team===0&&a.role===r.role);r.heroIndex=b.heroIndex;r.heroName=b.heroName;r.power=b.power;r.maxHp=b.maxHp;r.hp=b.hp;r.attack=b.attack;r.range=b.range;}}`,ctx);
+ if(process.env.NOPLAYER)vm.runInContext(`{const p=window.ESPORTS.state.actors.find(a=>a.player);if(p)p.player=false;}`,ctx);
  if(process.env.REVERSE)vm.runInContext('window.ESPORTS.state.actors.reverse()',ctx);
  if(!process.env.RAWPLAYER)vm.runInContext(`{const A=window.ESPORTS.state.actors,p=A.find(a=>a.player),o=A.filter(a=>!a.player);p.power=o.reduce((x,a)=>x+a.power,0)/o.length;}`,ctx);
  let jgHome=0,jgSamples=0,fb=null;
