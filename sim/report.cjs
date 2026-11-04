@@ -1,0 +1,20 @@
+const fs=require('fs'),vm=require('vm'),D=__dirname+'/../engine';
+function harness(seed){const elements=new Map(),el=()=>({hidden:false,textContent:'',innerHTML:'',disabled:false,after(){},scrollIntoView(){},querySelectorAll(){return [];},getContext:()=>new Proxy({},{get:()=>()=>{}})});let n=seed;const math=Object.create(Math);math.random=()=>((n=(n*1664525+1013904223)>>>0)/4294967296);const ctx={document:{querySelector:s=>{if(!elements.has(s))elements.set(s,el());return elements.get(s);},createElement:el},window:{scrollTo(){}},innerWidth:1280,requestAnimationFrame(){},Math:math,console:{log(){},warn(){}}};vm.createContext(ctx);for(const f of ['roster.js','game.js','battle.js','rift.js','rift-nav.js','macro.js','kits.js'])vm.runInContext(fs.readFileSync(D+'/'+f,'utf8'),ctx);return ctx;}
+const N=+(process.argv[2]||30),IQ=process.argv[3],res=[];
+for(let g=0;g<N;g++){const ctx=harness(g*11+5);vm.runInContext(`role=${g%5};selected=${(g*13)%80};start()`,ctx);const api=ctx.window.ESPORTS;let d=0;
+ if(IQ)vm.runInContext(`window.ESPORTS.state.actors.forEach(a=>a.iq=${IQ})`,ctx);
+ let jgHome=0,jgSamples=0,fb=null;
+ for(let n=0;n<16000&&!api.state.done;n++){const s=api.state;if(s.decision){const c=s.decision.choices[Math.floor(Math.random()*s.decision.choices.length)];s.decision=null;c.run();s.next=s.time+210;}api.tick(.25);
+  if(s.time<180){for(const a of s.actors.filter(a=>a.role===1&&!(a.dead>0))){jgSamples++;const own=s.camps.filter(c=>c.home===a.team||c.home===-1);if(own.some(c=>Math.hypot(c.x-a.x,c.y-a.y)<110)||(a.team?a.y<a.x-40:a.y>a.x+40)&&Math.abs(a.x+a.y-720)<200)jgHome++;}}
+  if(fb===null&&s.kills[0]+s.kills[1]>0)fb=s.time;}
+ const s=api.state,st=s.story||[],cnt=t=>st.filter(e=>e.type===t).length;
+ res.push({early:fb!=null&&fb<60?(s.story.find(e=>e.type==='lvl1kill')?'lvl1kill':'other')+':'+(s.logs.slice().reverse().find(l=>l.includes('擊倒'))||''):null,time:s.time,kills:s.kills[0]+s.kills[1],winner:s.winner,fb,lvl1:[s.style?.[0]?.lvl1,s.style?.[1]?.lvl1].join('/'),focus:[s.style?.[0]?.focus,s.style?.[1]?.focus].join('/'),invade:cnt('invade'),l1k:cnt('lvl1kill'),gank:cnt('gank'),gk:cnt('gankKill'),gf:cnt('gankFail'),cj:cnt('counterjungle'),bs:cnt('buffSteal'),dive:cnt('dive'),jg:jgHome/Math.max(1,jgSamples),gankLanes:st.filter(e=>e.type==='gank').map(e=>e.lane)});}
+const avg=k=>(res.reduce((x,r)=>x+(r[k]||0),0)/res.length);
+const lanes={};res.forEach(r=>r.gankLanes.forEach(l=>lanes[l]=(lanes[l]||0)+1));
+const fbs=res.map(r=>r.fb).filter(x=>x!=null).sort((a,b)=>a-b);
+console.log(JSON.stringify({N,IQ:IQ||'0.5',avgMin:(avg('time')/60).toFixed(1),avgKills:avg('kills').toFixed(1),
+ firstBlood:{min:(fbs[0]/60).toFixed(1),median:(fbs[fbs.length>>1]/60).toFixed(1),max:(fbs[fbs.length-1]/60).toFixed(1)},
+ lvl1Plans:res.reduce((m,r)=>{m[r.lvl1]=(m[r.lvl1]||0)+1;return m;},{}),invadeHappened:res.filter(r=>r.invade>0).length,lvl1Kills:avg('l1k').toFixed(2),
+ ganksPerGame:avg('gank').toFixed(1),gankSuccess:(res.reduce((x,r)=>x+r.gk,0)/Math.max(1,res.reduce((x,r)=>x+r.gk+r.gf,0))*100).toFixed(0)+'%',gankLanes:lanes,
+ counterJunglePerGame:avg('cj').toFixed(1),buffStealGames:res.filter(r=>r.bs>0).length,divesPerGame:avg('dive').toFixed(1),jungleInJungleFirst3min:(avg('jg')*100).toFixed(0)+'%',
+ earlyFB:res.filter(r=>r.early).map(r=>r.early).slice(0,6),distinctFirstBloodMin:new Set(fbs.map(x=>Math.round(x/30))).size,blueWin:res.filter(r=>r.winner===0).length}));

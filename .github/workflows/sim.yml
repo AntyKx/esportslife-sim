@@ -1,0 +1,30 @@
+name: sim
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: 每組場數
+        default: '40'
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        iq: ['0.3', '0.7', '0.95']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: simulate
+        run: |
+          node sim/report.cjs ${{ inputs.games }} ${{ matrix.iq }} | tee result.json
+          echo "### iq ${{ matrix.iq }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat result.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: result-${{ matrix.iq }}
+          path: result.json
