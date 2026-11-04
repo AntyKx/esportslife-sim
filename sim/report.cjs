@@ -1,8 +1,10 @@
 const fs=require('fs'),vm=require('vm'),D=__dirname+'/../engine';
 function harness(seed){const elements=new Map(),el=()=>({hidden:false,textContent:'',innerHTML:'',disabled:false,after(){},scrollIntoView(){},querySelectorAll(){return [];},getContext:()=>new Proxy({},{get:()=>()=>{}})});let n=seed;const math=Object.create(Math);math.random=()=>((n=(n*1664525+1013904223)>>>0)/4294967296);const ctx={document:{querySelector:s=>{if(!elements.has(s))elements.set(s,el());return elements.get(s);},createElement:el},window:{scrollTo(){}},innerWidth:1280,requestAnimationFrame(){},Math:math,console:{log(){},warn(){}}};vm.createContext(ctx);for(const f of ['roster.js','game.js','battle.js','rift.js','rift-nav.js',process.env.MACRO||'macro.js','kits.js'])vm.runInContext(fs.readFileSync(D+'/'+f,'utf8'),ctx);return ctx;}
 const N=+(process.argv[2]||30),IQ=process.argv[3],res=[];
-for(let g=0;g<N;g++){const ctx=harness(g*11+5);vm.runInContext(`role=${g%5};{const pool=ROSTER.map((h,i)=>[h,i]).filter(([h])=>h.role===role).map(x=>x[1]);selected=pool[${g*7}%pool.length];}start()`,ctx);const api=ctx.window.ESPORTS;let d=0;
+for(let g=0;g<N;g++){const ctx=harness(Math.floor(g/2)*11+5);vm.runInContext(`role=${Math.floor(g/2)%5};{const pool=ROSTER.map((h,i)=>[h,i]).filter(([h])=>h.role===role).map(x=>x[1]);selected=pool[${Math.floor(g/2)*7}%pool.length];}start()`,ctx);const api=ctx.window.ESPORTS;let d=0;
  if(IQ)vm.runInContext(`window.ESPORTS.state.actors.forEach(a=>a.iq=${IQ})`,ctx);
+ // 成對比較：奇數場把兩隊英雄（含戰力）互換，抵銷陣容強弱對藍紅勝率的影響
+ if(g%2===1)vm.runInContext(`{const A=window.ESPORTS.state.actors;for(const r of [0,1,2,3,4]){const b=A.find(a=>a.team===0&&a.role===r),c=A.find(a=>a.team===1&&a.role===r);for(const k of ['heroIndex','heroName','power','maxHp','hp','attack','range'])[b[k],c[k]]=[c[k],b[k]];}}`,ctx);
  if(process.env.MIRROR)vm.runInContext(`{const A=window.ESPORTS.state.actors;for(const r of A.filter(a=>a.team===1)){const b=A.find(a=>a.team===0&&a.role===r.role);r.heroIndex=b.heroIndex;r.heroName=b.heroName;r.power=b.power;r.maxHp=b.maxHp;r.hp=b.hp;r.attack=b.attack;r.range=b.range;}}`,ctx);
  if(process.env.NOPLAYER)vm.runInContext(`{const p=window.ESPORTS.state.actors.find(a=>a.player);if(p)p.player=false;}`,ctx);
  if(process.env.REVERSE)vm.runInContext('window.ESPORTS.state.actors.reverse()',ctx);
