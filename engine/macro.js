@@ -252,9 +252,10 @@ function laneBehaviour(a,lane,dt,stance){const s=state,foesHero=s.actors.filter(
  const back=(caught?10:stance==='trade'?6:fv<.8?48:22)-(lead>0?0:lead*32)+(a.player&&a.orderBackUntil>s.time?55:0),spot=stand(a,lane,back+(a.role===4?14:0));
  const tower=bStructuresTarget(a);const ownNearTower=s.minions.some(m=>m.team===a.team&&live(m)&&dist(m,tower)<110&&s.structures.includes(tower)&&tower.focus===m||m.team===a.team&&live(m)&&dist(m,tower)<100);
  if(!foeMinions.length&&reachMinions.length&&a.role!==4){const hit0=a.attack*a.power*levelMul(a)*1.05,m=reachMinions.filter(m=>m.hp<=hit0*1.8).sort((x,y)=>x.hp-y.hp)[0];
-  if(m&&!(underEnemyTower(a,m)&&!ownNearTowerOf(a,lane))&&!(fv<.8&&s.actors.some(b=>b.team!==a.team&&live(b)&&b.kind==='hero'&&dist(b,m)<b.range+20))){moveTo(a,m,dt,a.range*.9);if(m.hp<=hit0&&dist(a,m)<=a.range)attack(a,m);return;}}
+  const sp=m&&(()=>{const d=dist(a,m)||1,k=Math.min(1,a.range*.9/d);return{x:m.x+(a.x-m.x)*k,y:m.y+(a.y-m.y)*k};})();
+  if(m&&!(underEnemyTower(a,sp)&&!ownNearTowerOf(a,lane))&&!(fv<.55*caution(a)&&a.hp<a.maxHp*.7&&s.actors.some(b=>b.team!==a.team&&live(b)&&b.kind==='hero'&&b.hp>b.maxHp*.5&&dist(b,m)<b.range+10))){moveTo(a,m,dt,a.range*.9);if(m.hp<=hit0&&dist(a,m)<=a.range)attack(a,m);return;}}
  if(foeMinions.length){const hit=a.attack*a.power*levelMul(a)*1.05,sorted=foeMinions.sort((x,y)=>x.hp-y.hp),kill=sorted.find(m=>m.hp<=hit),laning=s.time<FORTIFY,push=stance==='trade'||!foesHero.length||!laning;
-  if(kill&&a.role!==4){if(a.cd<=0&&Math.random()>.12+.38*(1-iqOf(a)))attack(a,kill);else if(a.cd<=0)a.cd=.6;}
+  if(kill&&a.role!==4){if(dist(a,kill)>a.range){if(!underEnemyTower(a,kill)||ownNearTowerOf(a,lane)){moveTo(a,kill,dt,a.range*.9);return;}}else if(a.cd<=0&&Math.random()>.12+.38*(1-iqOf(a)))attack(a,kill);else if(a.cd<=0)a.cd=.6;}
   else if(push&&(a.role!==4||sorted[0].hp<a.attack*2)){if(foeMinions.length>=3)bSkill(a,foeMinions[0]);attack(a,sorted[0]);}
   else if(a.role===4&&kill&&!s.actors.some(u=>u.team===a.team&&u!==a&&u.role===3&&live(u)&&dist(u,a)<200))attack(a,kill);}
  else if(tower&&dist(a,tower)<a.range+5&&bCanHit(a,tower)&&ownNearTower&&!foesHero.length)attack(a,tower);
