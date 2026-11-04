@@ -1,0 +1,25 @@
+name: calib
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: 每批場數
+        default: '150'
+jobs:
+  calib:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['0', '1', '2', '3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: calibrate
+        run: node sim/calib.cjs ${{ inputs.games }} 0.6 ${{ matrix.shard }} | tee pairs.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pairs-${{ matrix.shard }}
+          path: pairs.json

@@ -168,10 +168,11 @@ function lvl1Point(a){const s=state,t=a.team,st=styleOf(t),k=(a.role%3)-1,j=(a.r
 // ---------- 0.75 對線：依職業相剋、熟練度（電腦用判斷力）、版本強度＋少量隨機決定每路優勢；比賽中再依等級、血量變動 ----------
 const CLASS_ADV={刺客:{法師:.3,射手:.25,輔助:.15},坦克:{刺客:.3,射手:-.15},鬥士:{坦克:.2,射手:.1,法師:-.15},戰士:{坦克:.15,射手:.1,法師:-.15},法師:{鬥士:.15,戰士:.15,射手:.1,刺客:-.3},射手:{坦克:.15,鬥士:-.1,刺客:-.25},輔助:{刺客:-.15},支援:{}};
 const clsOf=a=>(ROSTER[a.heroIndex]?.style||'鬥士').split('・')[0];
-function adv(a,b){const x=clsOf(a),y=clsOf(b);return (CLASS_ADV[x]?.[y]??-(CLASS_ADV[y]?.[x]??0));}
+const CALIB=()=>globalThis.LANE_CALIB===true; // 校正模式：關掉相剋，只記錄引擎原本的對線勝負
+function adv(a,b){if(CALIB())return 0;const x=clsOf(a),y=clsOf(b);return (CLASS_ADV[x]?.[y]??-(CLASS_ADV[y]?.[x]??0));}
 function skillOf(a){const m=heroes[a.heroIndex]?.mastery;return a.player&&Number.isFinite(m)?Math.min(1,m/100):iqOf(a);}
 const laners=(t,l)=>state.actors.filter(a=>a.team===t&&laneRoles(l).includes(a.role));
-function laneEdges(){const s=state;if(s.laneEdge)return s.laneEdge;const e=[[0,0,0],[0,0,0]];
+function laneEdges(){const s=state;if(s.laneEdge)return s.laneEdge;const e=[[0,0,0],[0,0,0]];if(CALIB()){s.laneEdge=e;return e;}
  for(let l=0;l<3;l++){const A=laners(0,l),B=laners(1,l);if(!A.length||!B.length)continue;let v=0;
   for(const a of A)for(const b of B)v+=adv(a,b)/(A.length*B.length);
   const avg=(L,f)=>L.reduce((x,u)=>x+f(u),0)/L.length;
@@ -301,8 +302,8 @@ tick=function(dt){const s=state;if(!s||s.done||s.paused||s.decision)return baseT
 // ---------- player decisions ----------
 const tacticsDamage=bDamage;
 bDamage=function(from,to,amount){const was=to&&to.kind==='hero'&&live(to);
- if(was&&from?.kind==='hero'&&state.time<840&&state.time>LVL1_END&&from.team!==to.team){const l=bLane(from.role);if(from.role!==1&&to.role!==1&&bLane(to.role)===l){const e=laneEdges()[from.team][l]||0;amount*=1+.6*e;}}const r=tacticsDamage.call(this,from,to,amount);
- if(was&&!live(to)&&from&&from.kind==='hero'){const s=state;if(s.time<840&&s.time>LVL1_END+12)(s.earlyKills||(s.earlyKills=[])).push({edge:laneEdges()[from.team][laneOf(to)]||0});if(s.time<LVL1_END+12)story('lvl1kill',from.team,{who:from.heroName,victim:to.heroName});
+ if(was&&from?.kind==='hero'&&state.time<840&&state.time>LVL1_END&&from.team!==to.team){const l=bLane(from.role);if(from.role!==1&&to.role!==1&&bLane(to.role)===l){const e=CALIB()?0:laneEdges()[from.team][l]||0;amount*=1+.6*e;}}const r=tacticsDamage.call(this,from,to,amount);
+ if(was&&!live(to)&&from&&from.kind==='hero'){const s=state;if(s.time<840&&s.time>LVL1_END&&from.role!==1&&to.role!==1&&bLane(from.role)===bLane(to.role))(s.pairKills||(s.pairKills=[])).push([clsOf(from),clsOf(to)]);if(s.time<840&&s.time>LVL1_END+12)(s.earlyKills||(s.earlyKills=[])).push({edge:laneEdges()[from.team][laneOf(to)]||0});if(s.time<LVL1_END+12)story('lvl1kill',from.team,{who:from.heroName,victim:to.heroName});
   else if(s.time<840&&s.time>LVL1_END+12&&!s.actors.some(u=>u!==from&&u.team===from.team&&live(u)&&dist(u,to)<260)){story('solokill',from.team,{who:from.heroName,victim:to.heroName,lane:LANE_NAME[laneOf(to)]});(s.laneKills||(s.laneKills=[])).push({edge:laneEdges()[from.team][laneOf(to)]||0,solo:1});}
   else if(s.time<900&&!(s._dive?.[from.team]>s.time)&&s.structures.some(t=>t.kind==='tower'&&t.team!==from.team&&t.hp>0&&t.tier<2&&dist(t,to)<110)){(s._dive||(s._dive={}))[from.team]=s.time+60;story('dive',from.team,{who:from.heroName,victim:to.heroName});}}
  return r;};
