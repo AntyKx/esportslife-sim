@@ -165,6 +165,27 @@ function lvl1Point(a){const s=state,t=a.team,st=styleOf(t),k=(a.role%3)-1,j=(a.r
  // 守野區：上中守上半邊入口，下路雙人守下半邊入口
  const near=a.role===0||a.role===2?(t?'blue':'red'):(t?'red':'blue'),c=ownCamp(t,near)||ownCamp(t,'blue');
  return {x:c.x+(400-c.x)*.2+k*10,y:c.y+(320-c.y)*.2+j*8};}
+// ---------- 0.75 對線：依職業相剋、熟練度（電腦用判斷力）、版本強度＋少量隨機決定每路優勢；比賽中再依等級、血量變動 ----------
+const CLASS_ADV={刺客:{法師:.3,射手:.25,輔助:.15},坦克:{刺客:.3,射手:-.15},鬥士:{坦克:.2,射手:.1,法師:-.15},戰士:{坦克:.15,射手:.1,法師:-.15},法師:{鬥士:.15,戰士:.15,射手:.1,刺客:-.3},射手:{坦克:.15,鬥士:-.1,刺客:-.25},輔助:{刺客:-.15},支援:{}};
+const clsOf=a=>(ROSTER[a.heroIndex]?.style||'鬥士').split('・')[0];
+function adv(a,b){const x=clsOf(a),y=clsOf(b);return (CLASS_ADV[x]?.[y]??-(CLASS_ADV[y]?.[x]??0));}
+function skillOf(a){const m=heroes[a.heroIndex]?.mastery;return a.player&&Number.isFinite(m)?Math.min(1,m/100):iqOf(a);}
+const laners=(t,l)=>state.actors.filter(a=>a.team===t&&laneRoles(l).includes(a.role));
+function laneEdges(){const s=state;if(s.laneEdge)return s.laneEdge;const e=[[0,0,0],[0,0,0]];
+ for(let l=0;l<3;l++){const A=laners(0,l),B=laners(1,l);if(!A.length||!B.length)continue;let v=0;
+  for(const a of A)for(const b of B)v+=adv(a,b)/(A.length*B.length);
+  const avg=(L,f)=>L.reduce((x,u)=>x+f(u),0)/L.length;
+  v+=(avg(A,skillOf)-avg(B,skillOf))*.8+(avg(A,u=>heroes[u.heroIndex]?.power||1)-avg(B,u=>heroes[u.heroIndex]?.power||1))*1.5+(Math.random()-.5)*.35;
+  v=Math.max(-1,Math.min(1,v));e[0][l]=v;e[1][l]=-v;}
+ s.laneEdge=e;let best=0;for(let l=1;l<3;l++)if(Math.abs(e[0][l])>Math.abs(e[0][best]))best=l;
+ if(Math.abs(e[0][best])>.15){const t=e[0][best]>0?0:1,w=laners(t,best)[0],v=laners(1-t,best)[0];story('matchup',t,{lane:LANE_NAME[best],who:w?.heroName,victim:v?.heroName});}
+ return e;}
+// 即時領先程度（-1～1）：開局優勢＋等級差＋血量差
+function laneLead(a,lane){const s=state,e=laneEdges()[a.team][lane]||0,me=laners(a.team,lane).filter(live),them=laners(opp(a.team),lane).filter(live);
+ if(!them.length)return Math.min(1,e*.5+.5);if(!me.length)return -1;
+ const avg=(L,f)=>L.reduce((x,u)=>x+f(u),0)/L.length;
+ const v=e*.55+(avg(me,u=>u.level||1)-avg(them,u=>u.level||1))*.15+(avg(me,u=>u.hp/u.maxHp)-avg(them,u=>u.hp/u.maxHp))*.45;
+ return Math.max(-1,Math.min(1,v));}
 function fightValue(a,r=230){const s=state,our=powerNear(a.team,a,r),their=powerNear(opp(a.team),a,r,a.team);return their>0?our/their:9;}
 function chooseTarget(a,foes){return foes.sort((x,y)=>(x.hp/tough(x))-(y.hp/tough(y))+(dist(a,x)-dist(a,y))/300)[0];}
 function useSpells(a,target,fighting){const s=state;
@@ -195,7 +216,7 @@ function wardTarget(a,near){if(!SPOTS||a.wardCharges<1)return null;const s=state
 function jungle(a,dt){const s=state,pol=a.team?POLICY_DEFAULT:policy();
  // gank check
  const old=GANK.get(a);if(old&&s.time>old.until){if(old.arrived&&live(old.victim))story('gankFail',a.team,{who:a.heroName,victim:old.victim.heroName,lane:old.lane,why:'timeout',seen:!!old.seen,vhp:Math.round(old.victim.hp/old.victim.maxHp*100)});GANK.delete(a);a.gankCD=s.time+45-20*iqOf(a);}
- if(!GANK.get(a)){const st=styleOf(a.team),gate=150+45*iqOf(a);if(a.hp>a.maxHp*.6&&s.time>gate&&!(a.gankCD>s.time)){let best=null,bestL=0,score=1.4-(pol.jungle==='gank'?.6:pol.jungle==='farm'?-.6:0);for(let l=0;l<3;l++){const victim=s.actors.find(b=>b.team!==a.team&&live(b)&&laneRoles(l).includes(b.role)&&b.task?.kind==='lane');if(!victim)continue;const ally=s.actors.find(b=>b.team===a.team&&live(b)&&laneRoles(l).includes(b.role)&&dist(b,victim)<240);const vt=ownTower(victim.team,l),off=vt?dist(victim,vt):300;if(off<85)continue;let v=Math.min(1,(off-85)/220)+(victim.hp<victim.maxHp*.6?1:0)+(ally?1:0)+(a.team?victim.y<victim.x-80:victim.y>victim.x-80?0:.5)-(s.wards.some(w=>w.team===victim.team&&w.until>s.time&&dist(w,victim)<170)?1:0)+(l===2?.7:0)+(spell(victim,'flash')?0:.7)-dist(a,victim)/600;if(FOCUS_LANE[st.focus]===l)v+=.5;if(v>score){score=v;best=victim;bestL=l;}}if(best)GANK.set(a,{victim:best,until:s.time+35,lane:LANE_NAME[bestL]});}}
+ if(!GANK.get(a)){const st=styleOf(a.team),gate=150+45*iqOf(a);if(a.hp>a.maxHp*.6&&s.time>gate&&!(a.gankCD>s.time)){let best=null,bestL=0,score=1.4-(pol.jungle==='gank'?.6:pol.jungle==='farm'?-.6:0);for(let l=0;l<3;l++){const victim=s.actors.find(b=>b.team!==a.team&&live(b)&&laneRoles(l).includes(b.role)&&b.task?.kind==='lane');if(!victim)continue;const ally=s.actors.find(b=>b.team===a.team&&live(b)&&laneRoles(l).includes(b.role)&&dist(b,victim)<240);const vt=ownTower(victim.team,l),off=vt?dist(victim,vt):300;if(off<85)continue;let v=Math.min(1.2,(off-85)/200)+Math.max(0,laneLead(victim,l))*.8+(victim.hp<victim.maxHp*.6?1:0)+(ally?1:0)+(a.team?victim.y<victim.x-80:victim.y>victim.x-80?0:.5)-(s.wards.some(w=>w.team===victim.team&&w.until>s.time&&dist(w,victim)<170)?1:0)+(l===2?.7:0)+(spell(victim,'flash')?0:.7)-dist(a,victim)/600;if(FOCUS_LANE[st.focus]===l)v+=.5;if(v>score){score=v;best=victim;bestL=l;}}if(best)GANK.set(a,{victim:best,until:s.time+35,lane:LANE_NAME[bestL]});}}
  const gk=GANK.get(a);a.gankTarget=gk&&gk.arrived?gk.victim:null;if(gk){const v=gk.victim;if(!gk.arrived&&dist(a,v)<240&&sees(v.team,a))gk.seen=1;
   if(!gk.arrived&&live(v)&&dist(a,v)<230){gk.arrived=1;gk.at=s.time;a.speedUntil=s.time+4;a.speedPct=Math.max(a.speedPct||0,.3);if(!gk.seen){v.caughtUntil=s.time+Math.max(.8,2.2-1.2*iqOf(v));v.slowUntil=v.caughtUntil;v.slowPct=Math.max(v.slowPct||0,.3);}story('gank',a.team,{who:a.heroName,victim:v.heroName,lane:gk.lane});}if(gk.arrived)(s.ganking||(s.ganking={}))[a.team]={victim:v,until:s.time+6};
   const commit=live(v)&&v.hp<v.maxHp*.4&&fightValue(a)>=1.25&&!s.structures.some(t=>t.kind==='tower'&&t.team===v.team&&t.hp>0&&t.tier>0&&dist(t,v)<110);
@@ -216,10 +237,11 @@ function jungle(a,dt){const s=state,pol=a.team?POLICY_DEFAULT:policy();
  a.campTarget=camp.index;if(dist(a,camp)>55){moveTo(a,camp,dt);return;}bSkill(a,camp);if(a.cd<=0){a.cd=1.6;bDamage(a,camp,a.attack*a.power*1.7);bShot(a,camp);}}
 function laneBehaviour(a,lane,dt,stance){const s=state,foesHero=s.actors.filter(b=>b.team!==a.team&&live(b)&&dist(a,b)<a.range+70&&sees(a.team,b)),foeMinions=s.minions.filter(m=>m.team!==a.team&&m.lane===lane&&live(m)&&dist(a,m)<a.range+10);
  const fv=fightValue(a,200),pressing=foesHero.find(f=>FOCUS.get(f)===a&&dist(f,a)<f.range+8);let fight=false;
- if(foesHero.length){const low=foesHero.some(f=>f.hp<f.maxHp*.3)&&a.hp>a.maxHp*.4;const cu=caution(a),gv=s.ganking?.[a.team],help=gv&&gv.until>s.time&&foesHero.includes(gv.victim)&&live(gv.victim)&&a.hp>a.maxHp*.35;fight=(help&&fv>.85)||(stance==='trade'&&fv>1.3*cu&&a.hp>a.maxHp*.6)||(fv>1.6*cu&&a.hp>a.maxHp*.5)||(low&&fv>1.05*cu)||(pressing&&fv>.95);
+ const lead=s.time>65?laneLead(a,lane):0;
+ if(foesHero.length){const low=foesHero.some(f=>f.hp<f.maxHp*.3)&&a.hp>a.maxHp*.4;const cu=caution(a)*(1-.3*lead),gv=s.ganking?.[a.team],help=gv&&gv.until>s.time&&foesHero.includes(gv.victim)&&live(gv.victim)&&a.hp>a.maxHp*.35;fight=(help&&fv>.85)||(stance==='trade'&&fv>1.3*cu&&a.hp>a.maxHp*.6)||(fv>1.6*cu&&a.hp>a.maxHp*.5)||(low&&fv>1.05*cu)||(pressing&&fv>.95);
   if(fight){const tgt=help?gv.victim:chooseTarget(a,foesHero);if(underEnemyTower(a,tgt)&&fv<1.7*cu)fight=false;else{FOCUS.set(a,tgt);useSpells(a,tgt,true);bSkill(a,tgt);attack(a,tgt);moveTo(a,tgt,dt,a.range*.85,fv>=1.7);return;}}}
  const caught=a.caughtUntil>s.time;FOCUS.delete(a);if(!caught)escape(a,foesHero);
- const back=caught?10:stance==='trade'?6:fv<.8?48:22,spot=stand(a,lane,back+(a.role===4?14:0));
+ const back=(caught?10:stance==='trade'?6:fv<.8?48:22)-lead*38,spot=stand(a,lane,back+(a.role===4?14:0));
  const tower=bStructuresTarget(a);const ownNearTower=s.minions.some(m=>m.team===a.team&&live(m)&&dist(m,tower)<110&&s.structures.includes(tower)&&tower.focus===m||m.team===a.team&&live(m)&&dist(m,tower)<100);
  if(foeMinions.length){bSkill(a,foeMinions[0]);const last=foeMinions.sort((x,y)=>x.hp-y.hp)[0];if(a.role!==4||last.hp<a.attack*2)attack(a,last);}
  else if(tower&&dist(a,tower)<a.range+5&&bCanHit(a,tower)&&ownNearTower&&!foesHero.length)attack(a,tower);
@@ -279,7 +301,8 @@ tick=function(dt){const s=state;if(!s||s.done||s.paused||s.decision)return baseT
 // ---------- player decisions ----------
 const tacticsDamage=bDamage;
 bDamage=function(from,to,amount){const was=to&&to.kind==='hero'&&live(to);const r=tacticsDamage.apply(this,arguments);
- if(was&&!live(to)&&from&&from.kind==='hero'){const s=state;if(s.time<LVL1_END+12)story('lvl1kill',from.team,{who:from.heroName,victim:to.heroName});
+ if(was&&!live(to)&&from&&from.kind==='hero'){const s=state;if(s.time<840&&s.time>LVL1_END+12)(s.earlyKills||(s.earlyKills=[])).push({edge:laneEdges()[from.team][laneOf(to)]||0});if(s.time<LVL1_END+12)story('lvl1kill',from.team,{who:from.heroName,victim:to.heroName});
+  else if(s.time<840&&s.time>LVL1_END+12&&!s.actors.some(u=>u!==from&&u.team===from.team&&live(u)&&dist(u,to)<260)){story('solokill',from.team,{who:from.heroName,victim:to.heroName,lane:LANE_NAME[laneOf(to)]});(s.laneKills||(s.laneKills=[])).push({edge:laneEdges()[from.team][laneOf(to)]||0,solo:1});}
   else if(s.time<900&&!(s._dive?.[from.team]>s.time)&&s.structures.some(t=>t.kind==='tower'&&t.team!==from.team&&t.hp>0&&t.tier<2&&dist(t,to)<110)){(s._dive||(s._dive={}))[from.team]=s.time+60;story('dive',from.team,{who:from.heroName,victim:to.heroName});}}
  return r;};
 function decisionsEnabled(){return typeof showDecision==='function';}
