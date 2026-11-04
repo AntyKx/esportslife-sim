@@ -70,7 +70,7 @@ tick=function(dt){const s=state;if(!s||s.done||s.decision||s.paused)return;s.tim
 };
 // Keep existing choices, but explain effects honestly and respect teleport cooldown.
 const originalShowDecision=showDecision;
-showDecision=function(type,title,text,choices){const s=state;if(s.eventCount>=6){s.next=s.time+120;return;}if(type==='support'&&role===0){const first=choices[0];if(s.tpReady>s.time){first.name='步行前往支援';first.desc=`傳送尚需 ${Math.ceil(s.tpReady-s.time)} 秒；你將步行前往隊友位置。`;first.run=()=>order('support',s.actors.filter(a=>!a.team&&!a.player&&bLive(a)).sort((a,b)=>a.hp-b.hp)[0]||bBase(0),70);}else{const run=first.run;first.run=()=>{run();s.tpReady=s.time+300;};}}
+showDecision=function(type,title,text,choices){const s=state;if(s.eventCount>=8){s.next=s.time+120;return;}s.lastMomentAt=s.time;if(type==='support'&&role===0){const first=choices[0];if(s.tpReady>s.time){first.name='步行前往支援';first.desc=`傳送尚需 ${Math.ceil(s.tpReady-s.time)} 秒；你將步行前往隊友位置。`;first.run=()=>order('support',s.actors.filter(a=>!a.team&&!a.player&&bLive(a)).sort((a,b)=>a.hp-b.hp)[0]||bBase(0),70);}else{const run=first.run;first.run=()=>{run();s.tpReady=s.time+300;};}}
  for(const c of choices){if(/farm/.test(String(c.run)))c.desc='留在當前位置補兵，收益取決於實際擊殺小兵，沒有額外固定獎勵。';if(/split/.test(String(c.run)))c.desc='你與輔助轉往下路推進，需要兵線才能安全拆塔。';}
  originalShowDecision(type,title,text,choices);const card=$('#decision');if(innerWidth<760&&!window.DECISION_SHEET)card.scrollIntoView({block:'center',behavior:'smooth'});
 };
