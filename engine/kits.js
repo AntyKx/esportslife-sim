@@ -75,7 +75,7 @@ function ranks(a){const k=kitOf(a);if(!k)return;if(!a.sk)a.sk={q:0,w:0,e:0,r:0};
 function tryWE(a,foe,x){const s=state,k=kitOf(a),sp=k[x];if(!sp||!rank(a,x)||a[x+'CD']>0||blocked(a))return false;
  const enemyT=['foe','area','around'].includes(sp.t);
  if(enemyT){if(!foe||!live(foe))return false;if(sp.t!=='around'&&foe.kind!=='hero'&&!has(sp.ops,'dmg'))return false;
-  const reach=sp.t==='around'?(sp.r||90):a.range+35+(has(sp.ops,'dash')?.[1]||0)+(has(sp.ops,'blink')?60:0);if(dist(a,foe)>reach)return false;
+  const reach=(sp.t==='around'?(sp.r||90):a.range+35+(has(sp.ops,'dash')?.[1]||0)+(has(sp.ops,'blink')?60:0))+(a.gankTarget===foe?90:0);if(dist(a,foe)>reach)return false;
   // 位移／控制技優先留給英雄
   if((has(sp.ops,'dash')||has(sp.ops,'blink')||has(sp.ops,'stun')||has(sp.ops,'root'))&&foe.kind!=='hero')return false;}
  else if(sp.t==='ally'||sp.t==='allies'){const heal=has(sp.ops,'heal');if(heal&&!hurtAlly(a,sp.r||140))return false;
@@ -90,7 +90,7 @@ function trySignature(a,foe){
  const s=state,k=kitOf(a),sp=k.s;if(a.skillCD>0||blocked(a)||!rank(a,'q'))return false;
  const healer=has(sp.ops,'heal')&&(sp.t==='ally'||sp.t==='allies');
  if(healer){if(!hurtAlly(a))return false;}
- else{if(!foe||!live(foe))return false;const reach=a.range+35+(has(sp.ops,'dash')?.[1]||0)+(has(sp.ops,'blink')?60:0);if(dist(a,foe)>reach)return false;}
+ else{if(!foe||!live(foe))return false;const reach=a.range+35+(has(sp.ops,'dash')?.[1]||0)+(has(sp.ops,'blink')?60:0)+(a.gankTarget===foe?90:0);if(dist(a,foe)>reach)return false;}
  a._castKey='q';cast(a,sp,foe,false,rmul(a,'q'));a.skillCD=sp.cd*(heroes[a.heroIndex]?.cdMul||1)*rcd(a,'q');
  const name=skillNames[a.heroIndex];a.lastSkill=name;s.skillUses++;if(a.player)s.personal.skills++;
  s.effects.push({x:a.x,y:a.y,ttl:2,color:a.team?'#f1a7a1':'#b7ef86',label:name});return true;
