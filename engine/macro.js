@@ -330,7 +330,7 @@ function resolveMoment(){const s=state,m=s.momentTrack;if(!m||s.time<m.until)ret
  (s.momentLog||(s.momentLog=[])).push({type:m.type,choice:m.choice,result,dk,dd,dt});
  const sum=`${MOMENT_TXT[m.type]||'決策'}（${m.choice}）：${dk?`擊殺 +${dk} `:''}${da?`助攻 +${da} `:''}${dt?`推掉 ${dt} 座塔 `:''}${dd?`陣亡 ${dd} 次 `:''}${!dk&&!da&&!dt&&!dd?'雙方沒有交換':''}`;
  try{log(`決策結果　${sum}`);}catch{}story('moment',0,{result,choice:m.choice,label:MOMENT_TXT[m.type]||''});}
-function keyMoment(s,p){if(s.time<150||s.time>1500||(s.eventCount||0)>=8||s.lastMomentAt>s.time-45)return false;const lane=bLane(p.role),cd=k=>s.macroEvents[k]>s.time,mark=(k,t)=>{s.macroEvents[k]=s.time+t;};
+function keyMoment(s,p){if(s.time<150||s.time>1500||(s.eventCount||0)>=8||s.lastMomentAt>s.time-45)return false;const lane=bLane(p.role),cnt=s.momentCount||(s.momentCount={}),cd=k=>s.macroEvents[k]>s.time||(cnt[k]||0)>=2,mark=(k,t)=>{s.macroEvents[k]=s.time+t;if(k!=='lane')cnt[k]=(cnt[k]||0)+1;};
  const foe=laneFoe(p),hint=kitHint(p),mast=Math.round(heroes[p.heroIndex]?.mastery||0),ward=s.wards.some(w=>!w.team&&w.until>s.time&&dist(w,p)<320);
  // ① 對方打野來抓你
  const ejg=s.actors.find(b=>b.team===1&&b.role===1&&live(b)),eg=ejg&&GANK.get(ejg);
@@ -347,20 +347,20 @@ function keyMoment(s,p){if(s.time<150||s.time>1500||(s.eventCount||0)>=8||s.last
    {name:'叫他去別路',desc:'你這波不方便，讓打野去幫其他隊友。',run:()=>{GANK.delete(jg);jg.gankCD=s.time+8;track('jgOffer','叫他去別路',20);}}]);return true;}
  // ③ 對線大優勢
  const lead=laneLead(p,lane);
- if(foe&&lead>.3&&foe.hp<foe.maxHp*.45&&p.hp>p.maxHp*.6&&s.time<900&&!cd('lw')&&!cd('lane')){mark('lw',200);mark('lane',120);const et=s.structures.find(t=>t.kind==='tower'&&t.team===1&&t.lane===lane&&t.hp>0&&t.tier===0);
+ if(foe&&lead>.3&&foe.hp<foe.maxHp*.45&&p.hp>p.maxHp*.6&&s.time<900&&!cd('lw')&&!cd('lane')){mark('lw',300);mark('lane',150);const et=s.structures.find(t=>t.kind==='tower'&&t.team===1&&t.lane===lane&&t.hp>0&&t.tier===0);
   showDecision('laneWin',`你在${ROLE_ZH[p.role]}壓制住 ${foe.heroName}`,`對手只剩 ${Math.round(foe.hp/foe.maxHp*100)}% 血量，你 ${Math.round(p.hp/p.maxHp*100)}%。${hint.mob?`你的 ${hint.mob} 是突進技，越塔追殺比較有把握。`:'你沒有突進技，越塔要冒被塔打的風險。'}${talentHas('duel')?'你有天賦【單挑王】。':''}`,[
    {name:'越塔強殺',desc:'頂著防禦塔追進去，殺了就賺，失敗就送。',run:()=>{p.diveUntil=s.time+10;track('laneWin','越塔強殺',14);}},
    {name:'推線拿塔皮',desc:'不追人，把兵推進塔下，換防禦塔傷害。',run:()=>{if(et)order('split',{x:et.x,y:et.y},30);track('laneWin','推線拿塔',30);}},
    {name:'去支援其他路',desc:'對手回城的空檔去幫隊友，擴大全隊優勢。',run:()=>{const ally=s.actors.filter(b=>b.team===0&&!b.player&&live(b)&&b.role!==1).sort((x,y)=>laneLead(x,bLane(x.role))-laneLead(y,bLane(y.role)))[0];if(ally)order('support',{x:ally.x,y:ally.y},35);track('laneWin','去支援',35);}}]);return true;}
  // ④ 對線被壓制
- if(foe&&lead<-.35&&s.time>200&&s.time<900&&!cd('ll')&&!cd('lane')){mark('ll',240);mark('lane',120);
+ if(foe&&lead<-.35&&s.time>200&&s.time<900&&!cd('ll')&&!cd('lane')){mark('ll',360);mark('lane',150);
   showDecision('laneLose',`你在${ROLE_ZH[p.role]}被 ${foe.heroName} 壓著打`,`對位上你比較吃虧（熟練度 ${mast}）。${talentHas('slow')?'你有【慢熱】，前期本來就比較辛苦。':''}要怎麼撐過去？`,[
    {name:'請打野來幫忙',desc:'接下來 45 秒，打野優先來你這路。',run:()=>{s.callJg={lane,until:s.time+45};track('laneLose','請打野幫忙',40);story('call',0,{label:`${p.heroName} 請打野支援${LANE_NAME[lane]}`});}},
    {name:'退塔下穩補',desc:'不換血，在塔下慢慢補兵，等後期。',run:()=>{p.orderBackUntil=s.time+40;track('laneLose','塔下穩補',40);}},
    {name:'離開這條線去支援',desc:'這條線打不過，去別的地方找機會。',run:()=>{const o=s.dragon.alive?s.dragon:{x:400,y:320};order('support',{x:o.x,y:o.y},40);track('laneLose','去支援',40);}}]);return true;}
  // ⑤ 自家野區被入侵
  const inv=s.actors.filter(b=>b.team===1&&live(b)&&sees(0,b)&&(b.y>b.x-80)&&dist(b,bBase(1))>300).filter(b=>s.camps.some(c=>c.home===0&&dist(c,b)<170));
- if(inv.length&&jg&&dist(jg,inv[0])<300&&dist(p,inv[0])<480&&!cd('iv')){mark('iv',240);
+ if((inv.length>=2||inv.some(b=>b.role===1))&&jg&&dist(jg,inv[0])<300&&dist(p,inv[0])<480&&!cd('iv')){mark('iv',300);
   showDecision('invaded',`${inv.map(b=>b.heroName).join('、')} 闖進我方野區`,`我方打野 ${jg.heroName} 就在附近，可能要開打。你離那裡大約 ${Math.round(dist(p,inv[0]))} 碼。`,[
    {name:'過去支援打野',desc:'放下兵線，去野區幫忙。',run:()=>{order('support',{x:inv[0].x,y:inv[0].y},25);track('invaded','支援打野',25);}},
    {name:'留在線上',desc:'相信打野自己處理，你繼續發育。',run:()=>{track('invaded','留在線上',25);}}]);return true;}
