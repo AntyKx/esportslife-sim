@@ -44,14 +44,14 @@ const baseDamage=bDamage;
 bDamage=function(from,to,amount){const s=state;if(!s||s.done||!to||!bLive(to)){return baseDamage(from,to,amount);}
  if(from?.kind==='hero'){amount*=levelMul(from);if(from.exhaustUntil>s.time)amount*=.6;if(to.kind==='hero')amount*=.62;}
  if(to.kind==='hero'){amount/=tough(to);to.lastHurt=s.time;if(to.recallAt!=null){to.recallAt=null;}if(to.tpAt!=null&&from?.kind==='hero'){to.tpAt=null;}}
- if(to.kind==='tower'&&s.time<FORTIFY&&from?.kind!=='herald'){amount*=to.tier===0?.75:to.tier===1?.9:1;}
+ if(to.kind==='tower'&&s.time<FORTIFY&&from?.kind!=='herald'){amount*=to.tier===0?.45:to.tier===1?.7:1;}
  if(from?.kind==='hero'&&to.kind==='hero'){const guard=s.structures.find(t=>t.kind==='tower'&&t.team===to.team&&t.hp>0&&dist(t,from)<(t.tier===3?95:110));if(guard){if(guard.focus!==from)guard.heat=0;guard.focus=from;}}
  if(to.kind==='camp'&&from?.kind==='hero')CAMP_AGGRO.set(to,from);
  const hp=to.hp;baseDamage(from,to,amount);if(!s||to.hp>=hp)return;
  if(to.hp<=0&&to.kind==='camp'&&from?.kind==='hero'){CAMP_AGGRO.delete(to);gain(from,to.type==='red'||to.type==='blue'?120:to.type==='scuttle'?90:70);}
  if(to.kind==='tower'&&to.tier===0&&s.time<FORTIFY&&from&&from.team<2){const plates=Math.min(5,Math.floor((1-to.hp/to.maxHp)*5+1e-6));if(plates>to.plates){s.gold[from.team]+=125*(plates-to.plates);to.plates=plates;}}
  if(to.hp>0)return;
- if(to.kind==='minion')share(to,opp(to.team),to.siege?110:to.super?120:72,170);
+ if(to.kind==='minion')share(to,opp(to.team),to.siege?110:to.super?120:to.caster?32:40,170);
  else if(to.kind==='hero'){to.dead=deathTime(to.level,s.time);to.recallAt=null;to.tpAt=null;to.task=null;if(from?.kind==='hero'){gain(from,150+to.level*28);share(to,from.team,70+to.level*12,240,from);}}
  else if(to.kind==='camp'&&from?.kind==='hero'&&false){gain(from,to.type==='red'||to.type==='blue'?120:to.type==='scuttle'?90:70);}
  else if(to.kind==='tower'&&to.tier===3){to.respawnAt=s.time+180;log(`${to.team?'赤潮':'逐光'}的${to.label}被摧毀，3 分鐘後重建。`);}
@@ -73,17 +73,17 @@ bTowers=function(dt){const s=state;for(const t of s.structures){if(t.kind!=='tow
  else{const dmg=(28+s.time*.012)*(1+.25*Math.min(3,t.heat||0));t.heat=(t.heat||0)+1;bDamage(t,target,dmg);}}};
 // ---------- minions: same rules as battle.js, bucketed per lane (was O(n²) over every unit) ----------
 bMinions=function(dt){const s=state,byLane=[[],[],[]];for(const m of s.minions)if(m.hp>0)byLane[m.lane].push(m);const heroes=s.actors.filter(live);
- for(const m of s.minions){if(m.hp<=0)continue;m.cd-=dt;const range=m.siege?100:38;let close=null,cd=range;for(const n of byLane[m.lane]){if(n.team===m.team||n.hp<=0)continue;const d=dist(m,n);if(d<=cd){cd=d;close=n;}}
+ for(const m of s.minions){if(m.hp<=0)continue;m.cd-=dt;const range=m.siege?100:m.caster?80:38;let close=null,cd=range;for(const n of byLane[m.lane]){if(n.team===m.team||n.hp<=0)continue;const d=dist(m,n);if(d<=cd){cd=d;close=n;}}
   let target=close;if(!target){let hd=range;for(const h of heroes){if(h.team===m.team)continue;const d=dist(m,h);if(d<=hd){hd=d;target=h;}}}
   if(!target){const st=bStructuresTarget(m);if(st&&dist(m,st)<(m.siege?110:52)&&bCanHit(m,st))target=st;}
   if(target){if(m.cd<=0){m.cd=2.5;bDamage(m,target,m.attack*(s.heroBuff[m.team]>s.time?1.45:1));}}
-  else{m.progress=Math.max(0,Math.min(1,m.progress+(m.team?-1:1)*dt*.004));const p=bPoint(m.lane,m.progress);m.x=p.x;m.y=p.y+(m.offset-9)*.35;}}
+  else{if(m.lag>0){m.lag=Math.max(0,m.lag-dt*.012);}else m.progress=Math.max(0,Math.min(1,m.progress+(m.team?-1:1)*dt*.012));const p=bPoint(m.lane,m.progress);m.x=p.x;m.y=p.y+(m.offset-9)*.35;}}
  s.minions=s.minions.filter(m=>m.hp>0);};
 // ---------- waves: cannons by game time, super minions per destroyed inhibitor ----------
 bWave=function(){const s=state;s.wave++;const cannon=s.time<900?s.wave%3===0:s.time<1500?s.wave%2===0:true,ratio=t=>Math.pow(Math.max(1,s.gold[t])/Math.max(1,s.gold[1-t]),.4);
  for(let team=0;team<2;team++){const down=(s.inhibitors||[]).filter(i=>i.team!==team&&i.hp<=0&&i.respawn-s.time>60),all=down.length===3;
   for(let lane=0;lane<3;lane++){const p0=bPoint(lane,team?.98:.02),push=(m)=>s.minions.push({...p0,kind:'minion',team,lane,cd:0,progress:team?1:0,...m});
-   for(let n=0;n<3;n++){const hp=42+s.time*.025;push({hp,maxHp:hp,siege:false,offset:n*9,cd:n*.4,attack:(4+s.time*.006)*ratio(team)});}
+   for(let n=0;n<6;n++){const caster=n>=3,hp=caster?30+s.time*.018:42+s.time*.025;push({hp,maxHp:hp,siege:false,caster,offset:(n%3)*9,cd:n*.3,attack:(caster?1.8+s.time*.003:2.2+s.time*.0035)*ratio(team),lag:caster?.012:0});}
    if(cannon){const hp=200+s.time*.08;push({hp,maxHp:hp,siege:true,offset:27,attack:(16+s.time*.012)*ratio(team)});}
    const supers=all?2:down.some(i=>i.lane===lane)?1:0;for(let k=0;k<supers;k++){const hp=300+s.time*.08;push({hp,maxHp:hp,super:true,siege:false,offset:k*9,attack:28+s.time*.01});}}}};
 // ---------- epic monsters: fight back, follow the aggro holder a little, leash home and regenerate when aggro drops ----------
@@ -104,7 +104,7 @@ bObjective=function(o,dt,name){const s=state;if(o.homeX==null){o.homeX=o.x;o.hom
  else if(o.hp<o.maxHp||dist(o,home)>.5){if(!o.resetting){o.resetting=true;o.target=null;}const d=dist(o,home);if(d>.5){const step=Math.min(d,dt*16);o.x+=(home.x-o.x)/d*step;o.y+=(home.y-o.y)/d*step;}o.hp=Math.min(o.maxHp,o.hp+o.maxHp*.12*dt);if(o.hp>=o.maxHp&&d<=.5){o.resetting=false;o.x=home.x;o.y=home.y;}}};
 // ---------- team brain ----------
 const PITS=()=>[T().baron,T().dragon];
-function nextObjective(t){const s=state,list=[];for(const o of PITS()){if(o.spent&&!o.alive)continue;const inT=o.alive?0:o.respawn-s.time;if(!Number.isFinite(inT)||inT>90)continue;if(o.epic==='baron'&&s.time<1200)continue;list.push({o,inT});}return list.sort((a,b)=>a.inT-b.inT)[0]||null;}
+function nextObjective(t){const s=state,list=[];for(const o of PITS()){if(o.spent&&!o.alive)continue;const inT=o.alive?0:o.respawn-s.time;if(!Number.isFinite(inT)||inT>(s.time<FORTIFY?40:90))continue;if(o.epic==='baron'&&s.time<1200)continue;list.push({o,inT});}return list.sort((a,b)=>a.inT-b.inT)[0]||null;}
 function front(team,lane){const s=T();if(frontCache.t!==s.time)frontCache={t:s.time,m:new Map()};const key=team*3+lane;if(frontCache.m.has(key))return frontCache.m.get(key);const r=frontRaw(team,lane);frontCache.m.set(key,r);return r;}
 function frontRaw(team,lane){const own=T().minions.filter(m=>m.team===team&&m.lane===lane&&live(m));if(!own.length)return null;return own.sort((a,b)=>team?a.progress-b.progress:b.progress-a.progress)[0];}
 function ownTower(team,lane){return T().structures.filter(t=>t.kind==='tower'&&t.team===team&&t.lane===lane&&t.hp>0).sort((a,b)=>a.tier-b.tier)[0]||T().structures.find(t=>t.kind==='inhibitor'&&t.team===team&&t.lane===lane&&t.hp>0)||bBase(team);}
@@ -132,7 +132,7 @@ function plan(t){const s=state,e=opp(t),us=s.actors.filter(a=>a.team===t&&live(a
  const tasks=[];for(const a of s.actors.filter(a=>a.team===t)){let k=mode;
   if(mode==='lane')k=a.role===1?'jungle':'lane';
   if(mode==='lvl1')k=a.role===1&&st.lvl1!=='invade'?'jungle':'lvl1';
-  if(mode==='objective'){const top=obj===s.baron&&s.time<1200;const group=obj.epic==='baron'||obj.epic==='elder'?[0,1,2,3,4]:top?[0,1,2]:[1,2,3,4];k=group.includes(a.role)?'objective':(phase==='lane'?'lane':'split');}
+  if(mode==='objective'){const top=obj===s.baron&&s.time<1200,early=phase==='lane',midFree=!s.actors.some(b=>b.team===e&&b.role===2&&live(b)&&laneOf(b)===1&&dist(b,ownTower(t,1)||b)<260);const group=obj.epic==='baron'||obj.epic==='elder'?[0,1,2,3,4]:top?(early?[0,1]:[0,1,2]):early?(midFree?[1,2,3,4]:[1,3,4]):[1,2,3,4];k=group.includes(a.role)?'objective':(phase==='lane'?'lane':'split');}
   if(mode==='41')k=a.role===0?'split':'group';
   if(mode==='131')k=a.role===0?'split':a.role===2?'split2':'group';
   if(mode==='trade')k=a.role===1?'jungle':'push';
@@ -204,7 +204,7 @@ function useSpells(a,target,fighting){const s=state;
 function escape(a,foes){const s=state;if(spell(a,'ghost')&&a.hp<a.maxHp*.35&&foes.some(f=>dist(a,f)<160)){use(a,'ghost');a.speedUntil=s.time+8;a.speedPct=.45;}if(spell(a,'flash')&&a.hp<a.maxHp*.22&&foes.some(f=>dist(a,f)<110)){const home=bBase(a.team);if(blink(a,home,75))use(a,'flash');}}
 // 0.56 回城：真實 MOBA 是原地詠唱 8 秒傳回主堡，不是走回去。只有附近有敵人時才先撤退，拉開距離就開始詠唱。
 function goHome(a,dt){const s=state,home=bBase(a.team),foes=s.actors.filter(b=>b.team!==a.team&&live(b)&&dist(a,b)<180&&sees(a.team,b));
- if(dist(a,home)<50){a.recallAt=null;return true;}
+ if(dist(a,home)<50){a.recallAt=null;a.lastBack=T().time;return true;}
  if(!foes.length&&a.recallAt==null&&s.time-(a.lastHurt??-99)>1.5)a.recallAt=s.time;
  if(a.recallAt!=null){if(foes.length){a.recallAt=null;}else if(s.time-a.recallAt>=RECALL){Object.assign(a,home);a.nav=null;a.recallAt=null;s.recallCount=(s.recallCount||0)+1;return true;}else return false;}
  if(a.rootUntil<=s.time)bWalk(a,home,dt*speed(a));return false;}
@@ -241,7 +241,7 @@ function jungle(a,dt){const s=state,pol=a.team?POLICY_DEFAULT:policy();
   if(wait&&(s.time<95||(wait.respawn||0)-s.time<25)){moveTo(a,{x:wait.x+(a.team?-14:14),y:wait.y+(a.team?-10:10)},dt,6);return;}
   const w=wardTarget(a,a);moveTo(a,w||(wait?{x:wait.x,y:wait.y}:bPoint(1,a.team?.6:.4)),dt);if(w&&dist(a,w)<30)placeWard(a,w);return;}
  a.campTarget=camp.index;if(dist(a,camp)>55){moveTo(a,camp,dt);return;}bSkill(a,camp);if(a.cd<=0){a.cd=1.6;bDamage(a,camp,a.attack*a.power*1.7);bShot(a,camp);}}
-function laneBehaviour(a,lane,dt,stance){const s=state,foesHero=s.actors.filter(b=>b.team!==a.team&&live(b)&&dist(a,b)<a.range+70&&sees(a.team,b)),foeMinions=s.minions.filter(m=>m.team!==a.team&&m.lane===lane&&live(m)&&dist(a,m)<a.range+10);
+function laneBehaviour(a,lane,dt,stance){const s=state,foesHero=s.actors.filter(b=>b.team!==a.team&&live(b)&&dist(a,b)<a.range+70&&sees(a.team,b)),foeMinions=s.minions.filter(m=>m.team!==a.team&&m.lane===lane&&live(m)&&dist(a,m)<a.range+10),reachMinions=s.minions.filter(m=>m.team!==a.team&&m.lane===lane&&live(m)&&dist(a,m)<a.range+120);
  const fv=fightValue(a,200),pressing=foesHero.find(f=>FOCUS.get(f)===a&&dist(f,a)<f.range+8);let fight=false;
  const lead=s.time>65?laneLead(a,lane):0;
  if(foesHero.length){const low=foesHero.some(f=>f.hp<f.maxHp*.3)&&a.hp>a.maxHp*.4;const cu=caution(a)*(1-(lead>0?0:.3)*lead),gv=s.ganking?.[a.team],help=gv&&gv.until>s.time&&foesHero.includes(gv.victim)&&live(gv.victim)&&a.hp>a.maxHp*.35;a.gankTarget=help?gv.victim:null;fight=(help&&fv>.85)||(stance==='trade'&&fv>1.3*cu&&a.hp>a.maxHp*.6)||(fv>1.6*cu&&a.hp>a.maxHp*.5)||(low&&fv>1.05*cu)||(pressing&&fv>.95);
@@ -251,12 +251,18 @@ function laneBehaviour(a,lane,dt,stance){const s=state,foesHero=s.actors.filter(
  const caught=a.caughtUntil>s.time;FOCUS.delete(a);if(!caught)escape(a,foesHero);
  const back=(caught?10:stance==='trade'?6:fv<.8?48:22)-(lead>0?0:lead*32)+(a.player&&a.orderBackUntil>s.time?55:0),spot=stand(a,lane,back+(a.role===4?14:0));
  const tower=bStructuresTarget(a);const ownNearTower=s.minions.some(m=>m.team===a.team&&live(m)&&dist(m,tower)<110&&s.structures.includes(tower)&&tower.focus===m||m.team===a.team&&live(m)&&dist(m,tower)<100);
- if(foeMinions.length){bSkill(a,foeMinions[0]);const last=foeMinions.sort((x,y)=>x.hp-y.hp)[0];if(a.role!==4||last.hp<a.attack*2)attack(a,last);}
+ if(!foeMinions.length&&reachMinions.length&&a.role!==4){const hit0=a.attack*a.power*levelMul(a)*1.05,m=reachMinions.filter(m=>m.hp<=hit0*1.8).sort((x,y)=>x.hp-y.hp)[0];
+  if(m&&!(underEnemyTower(a,m)&&!ownNearTowerOf(a,lane))&&!(fv<.8&&s.actors.some(b=>b.team!==a.team&&live(b)&&b.kind==='hero'&&dist(b,m)<b.range+20))){moveTo(a,m,dt,a.range*.9);if(m.hp<=hit0&&dist(a,m)<=a.range)attack(a,m);return;}}
+ if(foeMinions.length){const hit=a.attack*a.power*levelMul(a)*1.05,sorted=foeMinions.sort((x,y)=>x.hp-y.hp),kill=sorted.find(m=>m.hp<=hit),laning=s.time<FORTIFY,push=stance==='trade'||!foesHero.length||!laning;
+  if(kill&&a.role!==4){if(a.cd<=0&&Math.random()>.12+.38*(1-iqOf(a)))attack(a,kill);else if(a.cd<=0)a.cd=.6;}
+  else if(push&&(a.role!==4||sorted[0].hp<a.attack*2)){if(foeMinions.length>=3)bSkill(a,foeMinions[0]);attack(a,sorted[0]);}
+  else if(a.role===4&&kill&&!s.actors.some(u=>u.team===a.team&&u!==a&&u.role===3&&live(u)&&dist(u,a)<200))attack(a,kill);}
  else if(tower&&dist(a,tower)<a.range+5&&bCanHit(a,tower)&&ownNearTower&&!foesHero.length)attack(a,tower);
  else if(tower&&ownNearTower&&!foesHero.length&&dist(a,tower)<a.range+80){moveTo(a,tower,dt,a.range*.85,true);return;}
  if(underEnemyTower(a,spot)&&!ownNearTower){const t=ownTower(a.team,lane);moveTo(a,{x:(spot.x+t.x)/2,y:(spot.y+t.y)/2},dt);return;}
  if(a.role===4&&a.wardCharges>0&&s.time>90){const w=wardTarget(a,spot);if(w&&dist(w,spot)<160){moveTo(a,w,dt);if(dist(a,w)<30)placeWard(a,w);return;}}
  moveTo(a,spot,dt,6);}
+function ownNearTowerOf(a,lane){const s=state,tw=s.structures.find(t=>t.kind==='tower'&&t.team!==a.team&&t.lane===lane&&t.hp>0&&dist(t,a)<220);return !tw||s.minions.some(m=>m.team===a.team&&live(m)&&dist(m,tw)<100);}
 function groupPoint(t,lane){const f=front(t,lane);if(f)return stand({team:t},lane,40);const tw=ownTower(t,lane);return{x:tw.x,y:tw.y};}
 function skirmish(a,dt,r=240){if(state.time<40)return false;const s=state,foes=s.actors.filter(b=>b.team!==a.team&&live(b)&&dist(a,b)<r&&sees(a.team,b));if(!foes.length)return false;const fv=fightValue(a,r);const bar=effectiveBar(a.team)*(T().plan[a.team].mode==='objective'?.92:1);
  const engaged=foes.some(f=>FOCUS.get(f)===a&&dist(f,a)<f.range+10),contest=T().plan[a.team].mode==='objective'||T().plan[a.team].mode==='defend'||T().plan[a.team].mode==='siege';
@@ -274,7 +280,9 @@ bHero=function(a,dt){const s=state;syncSpells(a);
  if(aggro&&!(task.kind==='siege'&&fightValue(a,260)>=1.7)){const d=dist(a,aggro)||1;escape(a,s.actors.filter(b=>b.team!==a.team&&live(b)&&dist(a,b)<120));bWalk(a,{x:a.x+(a.x-aggro.x)/d*60,y:a.y+(a.y-aggro.y)/d*60},dt*speed(a));return;}
  // low health: disengage and go home
  const foesNear=s.actors.filter(b=>b.team!==a.team&&live(b)&&dist(a,b)<200&&sees(a.team,b));
- if(a.hp<a.maxHp*.32||a.recalling){a.recalling=true;escape(a,foesNear);useSpells(a,null,foesNear.length>0);if(goHome(a,dt)){a.recalling=a.hp<a.maxHp*.95;}return;}
+ if(s.time<FORTIFY&&task.kind==='lane'&&!foesNear.length&&s.time-(a.lastHurt??-99)>5&&a.hp<a.maxHp)a.hp=Math.min(a.maxHp,a.hp+a.maxHp*.006*dt);
+ if(!a.recalling&&task.kind==='lane'&&s.time>200&&s.time-(a.lastBack??0)>150&&a.hp<a.maxHp*.5&&!foesNear.length&&!s.minions.some(m=>m.team!==a.team&&live(m)&&dist(m,a)<160)){a.recalling=true;}
+ if(a.hp<a.maxHp*(s.time<FORTIFY?.24:.32)||a.recalling){a.recalling=true;escape(a,foesNear);useSpells(a,null,foesNear.length>0);if(goHome(a,dt)){a.recalling=a.hp<a.maxHp*.95;}return;}
  // after a reset, teleport back if the job is far away
  const dest=taskPoint(a,task);if(dest&&dist(a,home)<70&&dist(a,dest)>330&&spell(a,'tp')){const anchor=tpAnchor(a,dest);if(anchor){use(a,'tp');a.tpAt=s.time+TP_CHANNEL;a.tpTo=anchor;return;}}
  a.lane=task.kind==='lane'?bLane(a.role):task.kind==='split'?0:task.kind==='split2'?2:laneOf(a);
@@ -331,29 +339,29 @@ function resolveMoment(){const s=state,m=s.momentTrack;if(!m||s.time<m.until)ret
  const sum=`${MOMENT_TXT[m.type]||'決策'}（${m.choice}）：${dk?`擊殺 +${dk} `:''}${da?`助攻 +${da} `:''}${dt?`推掉 ${dt} 座塔 `:''}${dd?`陣亡 ${dd} 次 `:''}${!dk&&!da&&!dt&&!dd?'雙方沒有交換':''}`;
  try{log(`決策結果　${sum}`);}catch{}story('moment',0,{result,choice:m.choice,label:MOMENT_TXT[m.type]||''});}
 function keyMoment(s,p){if(s.time<150||s.time>1500||(s.eventCount||0)>=8||s.lastMomentAt>s.time-45)return false;const lane=bLane(p.role),cnt=s.momentCount||(s.momentCount={}),cd=k=>s.macroEvents[k]>s.time||(cnt[k]||0)>=2,mark=(k,t)=>{s.macroEvents[k]=s.time+t;if(k!=='lane')cnt[k]=(cnt[k]||0)+1;};
- const foe=laneFoe(p),hint=kitHint(p),mast=Math.round(heroes[p.heroIndex]?.mastery||0),ward=s.wards.some(w=>!w.team&&w.until>s.time&&dist(w,p)<320);
+ const foe=laneFoe(p),hint=kitHint(p),inLane=(p.task?.kind||'lane')==='lane'&&!p.recalling&&distToLane(p,lane)<80&&dist(p,bBase(0))>200,foeHere=foe&&dist(foe,p)<300&&distToLane(foe,lane)<90,mast=Math.round(heroes[p.heroIndex]?.mastery||0),ward=s.wards.some(w=>!w.team&&w.until>s.time&&dist(w,p)<320);
  // ① 對方打野來抓你
  const ejg=s.actors.find(b=>b.team===1&&b.role===1&&live(b)),eg=ejg&&GANK.get(ejg);
- if(eg&&eg.victim===p&&!eg.arrived&&dist(ejg,p)<520&&!cd('gw')){mark('gw',150);const seen=sees(0,ejg),deep=dist(p,ownTower(0,lane))>140;
+ if(inLane&&eg&&eg.victim===p&&!eg.arrived&&dist(ejg,p)<520&&!cd('gw')){mark('gw',150);const seen=sees(0,ejg),deep=dist(p,ownTower(0,lane))>140;
   showDecision('gankWarn',seen?`對方打野 ${ejg.heroName} 正往你這裡移動！`:`對方打野 ${ejg.heroName} 已經從視野消失`,`${seen?'隊友看到他從河道靠近。':'他最後出現的位置離你不遠。'}${deep?'你的兵線壓得很深，離塔有段距離。':'你離自家塔不遠。'}${ward?'附近有我方的眼。':'附近沒有我方視野。'}${talentHas('survive')?'你有天賦【極限求生】。':''}${hint.mob?`你有位移技 ${hint.mob}，被抓時比較好逃。`:''}`,[
    {name:'立刻退回塔下',desc:'放掉這波兵，安全第一。',run:()=>{p.orderBackUntil=s.time+14;track('gankWarn','退回塔下',16);story('call',0,{label:`${p.heroName} 察覺危險，退回塔下`});}},
    {name:'叫我方打野來反蹲',desc:'我方打野趕到你身邊，對方真的來就打 2 對 2。',run:()=>{s.jgGuard={until:s.time+22};track('gankWarn','打野反蹲',22);story('call',0,{label:`${p.heroName} 呼叫打野反蹲`});}},
    {name:'繼續壓線，賭他不來',desc:'多吃這波兵和經驗；被抓到就很危險。',run:()=>{track('gankWarn','賭他不來',16);}}]);return true;}
  // ② 我方打野要來 gank 你的對手
  const jg=s.actors.find(b=>b.team===0&&b.role===1&&live(b)),og=jg&&GANK.get(jg);
- if(og&&foe&&og.victim===foe&&!og.arrived&&dist(jg,foe)<520&&!cd('jo')){mark('jo',150);
+ if(inLane&&foeHere&&og&&og.victim===foe&&!og.arrived&&dist(jg,foe)<520&&!cd('jo')){mark('jo',150);
   showDecision('jgOffer',`打野 ${jg.heroName} 要來抓 ${foe.heroName}`,`對手血量 ${Math.round(foe.hp/foe.maxHp*100)}%、你 ${Math.round(p.hp/p.maxHp*100)}%。${hint.cc?`你的 ${hint.cc} 可以先手控場。`:'你沒有控場技，要靠打野先手。'}英雄熟練度 ${mast}。`,[
    {name:'配合開戰',desc:'打野一到就一起上，集火對手。',run:()=>{p.engageUntil=s.time+14;p.engageTarget=foe;track('jgOffer','配合開戰',16);}},
    {name:'叫他去別路',desc:'你這波不方便，讓打野去幫其他隊友。',run:()=>{GANK.delete(jg);jg.gankCD=s.time+8;track('jgOffer','叫他去別路',20);}}]);return true;}
  // ③ 對線大優勢
  const lead=laneLead(p,lane);
- if(foe&&lead>.3&&foe.hp<foe.maxHp*.45&&p.hp>p.maxHp*.6&&s.time<900&&!cd('lw')&&!cd('lane')){mark('lw',300);mark('lane',150);const et=s.structures.find(t=>t.kind==='tower'&&t.team===1&&t.lane===lane&&t.hp>0&&t.tier===0);
+ if(inLane&&foeHere&&lead>.3&&foe.hp<foe.maxHp*.45&&p.hp>p.maxHp*.6&&!foe.recalling&&s.time<900&&!cd('lw')&&!cd('lane')){mark('lw',300);mark('lane',150);const et=s.structures.find(t=>t.kind==='tower'&&t.team===1&&t.lane===lane&&t.hp>0&&t.tier===0);
   showDecision('laneWin',`你在${ROLE_ZH[p.role]}壓制住 ${foe.heroName}`,`對手只剩 ${Math.round(foe.hp/foe.maxHp*100)}% 血量，你 ${Math.round(p.hp/p.maxHp*100)}%。${hint.mob?`你的 ${hint.mob} 是突進技，越塔追殺比較有把握。`:'你沒有突進技，越塔要冒被塔打的風險。'}${talentHas('duel')?'你有天賦【單挑王】。':''}`,[
    {name:'越塔強殺',desc:'頂著防禦塔追進去，殺了就賺，失敗就送。',run:()=>{p.diveUntil=s.time+10;track('laneWin','越塔強殺',14);}},
    {name:'推線拿塔皮',desc:'不追人，把兵推進塔下，換防禦塔傷害。',run:()=>{if(et)order('split',{x:et.x,y:et.y},30);track('laneWin','推線拿塔',30);}},
    {name:'去支援其他路',desc:'對手回城的空檔去幫隊友，擴大全隊優勢。',run:()=>{const ally=s.actors.filter(b=>b.team===0&&!b.player&&live(b)&&b.role!==1).sort((x,y)=>laneLead(x,bLane(x.role))-laneLead(y,bLane(y.role)))[0];if(ally)order('support',{x:ally.x,y:ally.y},35);track('laneWin','去支援',35);}}]);return true;}
  // ④ 對線被壓制
- if(foe&&lead<-.35&&s.time>200&&s.time<900&&!cd('ll')&&!cd('lane')){mark('ll',360);mark('lane',150);
+ if(inLane&&foeHere&&lead<-.35&&p.hp<p.maxHp*.7&&s.time>200&&s.time<900&&!cd('ll')&&!cd('lane')){mark('ll',360);mark('lane',150);
   showDecision('laneLose',`你在${ROLE_ZH[p.role]}被 ${foe.heroName} 壓著打`,`對位上你比較吃虧（熟練度 ${mast}）。${talentHas('slow')?'你有【慢熱】，前期本來就比較辛苦。':''}要怎麼撐過去？`,[
    {name:'請打野來幫忙',desc:'接下來 45 秒，打野優先來你這路。',run:()=>{s.callJg={lane,until:s.time+45};track('laneLose','請打野幫忙',40);story('call',0,{label:`${p.heroName} 請打野支援${LANE_NAME[lane]}`});}},
    {name:'退塔下穩補',desc:'不換血，在塔下慢慢補兵，等後期。',run:()=>{p.orderBackUntil=s.time+40;track('laneLose','塔下穩補',40);}},
@@ -399,7 +407,7 @@ function savePolicy(p){try{localStorage.setItem('esports-policy',JSON.stringify(
 const POLICY_UI=[['lane','對線',[['safe','穩健控線'],['trade','積極換血']]],['jungle','打野',[['farm','穩定刷野'],['balanced','均衡'],['gank','積極抓人']]],['objective','物件',[['priority','物件優先'],['flex','隨機應變']]],['macro','中後期',[['group','抱團推進'],['41','四一分推'],['131','一三一']]],['fight','團戰',[['safe','保守'],['balanced','均衡'],['aggressive','激進']]]];
 function buildPolicyPanel(){if(!document.body||document.querySelector('#tactics'))return;const log=document.querySelector('#log');if(!log?.parentNode)return;const box=document.createElement('details');box.id='tactics';box.className='tactics';box.open=true;
  box.innerHTML='<summary>戰術方針 <small>隨時可改，AI 隊友會照著做</small></summary>'+POLICY_UI.map(([k,label,opts])=>`<div class="tactic-row"><span>${label}</span><div>${opts.map(([v,t])=>`<button type="button" class="quiet" data-policy="${k}" data-value="${v}">${t}</button>`).join('')}</div></div>`).join('');
- log.parentNode.insertBefore(box,log);box.addEventListener('click',e=>{const b=e.target.closest('[data-policy]');if(!b||!state)return;state.policy={...policy(),[b.dataset.policy]:b.dataset.value};savePolicy(state.policy);refreshPolicy();});}
+ const bar=document.querySelector('#match .overview-bar')||document.querySelector('#match .mapfoot');if(bar)bar.after(box);else log.parentNode.insertBefore(box,log);box.addEventListener('click',e=>{const b=e.target.closest('[data-policy]');if(!b||!state)return;state.policy={...policy(),[b.dataset.policy]:b.dataset.value};savePolicy(state.policy);refreshPolicy();});}
 function refreshPolicy(){const p=policy();document.querySelectorAll?.('[data-policy]').forEach(b=>b.classList.toggle('selected',p[b.dataset.policy]===b.dataset.value));}
 // fight bar adjusted by the player's one-off decisions
 const fb=fightBar;
