@@ -1,7 +1,7 @@
 const fs=require('fs'),vm=require('vm'),D=__dirname+'/../engine';
 function harness(seed){const elements=new Map(),el=()=>({hidden:false,textContent:'',innerHTML:'',disabled:false,after(){},scrollIntoView(){},querySelectorAll(){return [];},getContext:()=>new Proxy({},{get:()=>()=>{}})});let n=seed;const math=Object.create(Math);math.random=()=>((n=(n*1664525+1013904223)>>>0)/4294967296);const ctx={document:{querySelector:s=>{if(!elements.has(s))elements.set(s,el());return elements.get(s);},createElement:el},window:{scrollTo(){}},innerWidth:1280,requestAnimationFrame(){},Math:math,console:{log(){},warn(){}}};vm.createContext(ctx);for(const f of ['roster.js','game.js','battle.js','rift.js','rift-nav.js',process.env.MACRO||'macro.js','kits.js'])vm.runInContext(fs.readFileSync(D+'/'+f,'utf8'),ctx);return ctx;}
 const N=+(process.argv[2]||30),IQ=process.argv[3],res=[];
-for(let g=0;g<N;g++){const ctx=harness(g*11+5);vm.runInContext(`role=${g%5};selected=${(g*13)%80};start()`,ctx);const api=ctx.window.ESPORTS;let d=0;
+for(let g=0;g<N;g++){const ctx=harness(g*11+5);vm.runInContext(`role=${g%5};{const pool=ROSTER.map((h,i)=>[h,i]).filter(([h])=>h.role===role).map(x=>x[1]);selected=pool[${g*7}%pool.length];}start()`,ctx);const api=ctx.window.ESPORTS;let d=0;
  if(IQ)vm.runInContext(`window.ESPORTS.state.actors.forEach(a=>a.iq=${IQ})`,ctx);
  if(!process.env.RAWPLAYER)vm.runInContext(`{const A=window.ESPORTS.state.actors,p=A.find(a=>a.player),o=A.filter(a=>!a.player);p.power=o.reduce((x,a)=>x+a.power,0)/o.length;}`,ctx);
  let jgHome=0,jgSamples=0,fb=null;

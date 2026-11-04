@@ -10,7 +10,8 @@ const kitOf=a=>a&&a.kind==='hero'?ROSTER[a.heroIndex]?.kit:null;
 function pv(a,type){const k=kitOf(a);return k&&k.p[1]===type?k.p[2]:0;}
 const has=(ops,op)=>ops.find(o=>o[0]===op);
 
-function init(a){if(a._kitFor===a.heroIndex)return;a._kitFor=a.heroIndex;const b=pv(a,'bulk');if(b&&!a._bulk){a._bulk=1+b;a.maxHp*=a._bulk;a.hp*=a._bulk;}if(a.ultCD===undefined)a.ultCD=0;a.basicN=0;}
+function init(a){if(a._kitFor===a.heroIndex)return;a._kitFor=a.heroIndex;if(!a._clsBuff&&(ROSTER[a.heroIndex]?.style||'').startsWith('刺客')){a._clsBuff=1;a.power=(a.power||1)*1.1;} // 0.75 刺客整體偏弱（校正：擊殺 374／陣亡 587），戰力 +10%
+ const b=pv(a,'bulk');if(b&&!a._bulk){a._bulk=1+b;a.maxHp*=a._bulk;a.hp*=a._bulk;}if(a.ultCD===undefined)a.ultCD=0;a.basicN=0;}
 function enemiesNear(a,c,r){const s=state;return [...s.actors,...s.minions].filter(u=>u.team!==a.team&&live(u)&&Math.hypot(u.x-c.x,u.y-c.y)<r);}
 function alliesNear(a,r){return state.actors.filter(u=>u.team===a.team&&live(u)&&dist(a,u)<r);}
 function hurtAlly(a,r=135){return alliesNear(a,r).filter(u=>u.hp<u.maxHp*.72).sort((u,v)=>u.hp/u.maxHp-v.hp/v.maxHp)[0];}
