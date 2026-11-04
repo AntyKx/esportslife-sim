@@ -14,6 +14,7 @@ const FOCUS=new WeakMap(),GANK=new WeakMap(),CAMP_AGGRO=new WeakMap();
 const opp=t=>1-t,live=a=>bLive(a),T=()=>state;
 const xpNeed=l=>80+85*l;
 const levelMul=a=>1+.075*((a.level||1)-1);
+const lastHitDmg=a=>20+2.2*((a.level||1)-1),STRUCT_LATE=.62;
 const tough=a=>1+.085*((a.level||1)-1);
 const deathTime=(lvl,t)=>[6,7,8,9,11,13,16,19,22,25,28,30,32,34,36,38,40,42][Math.max(0,Math.min(17,(lvl||1)-1))]*(1+Math.max(0,t-900)/2400);
 const laneOf=a=>[0,1,2].map(l=>[l,distToLane(a,l)]).sort((x,y)=>x[1]-y[1])[0][0];
@@ -35,14 +36,16 @@ function wardSpots(){const N=window.RIFT_NAV,out=[];if(!N)return out;const rs=N.
 let SPOTS=null;
 // ---------- start ----------
 const baseStart=start;
-start=function(){baseStart();const s=state;SPOTS=SPOTS||wardSpots();s.speed=s.speed||1;s.wards=[];s.plan=[{mode:'lane',tasks:[]},{mode:'lane',tasks:[]}];s.planAt=0;s.policy={...POLICY_DEFAULT,...(loadPolicy()||{})};s.teamOrder=null;s.surrender=null;s.surrenderAsked=0;s.macroEvents={};s.waveAt=65;s.burns=[];
- for(const t of s.structures){if(t.kind==='tower'){const hp=t.tier===3?380:t.tier===2?420:t.tier===1?400:400;t.hp=t.maxHp=hp;t.plates=0;t.heat=0;t.calm=0;}if(t.kind==='inhibitor'){t.hp=t.maxHp=300;}}
+start=function(){baseStart();const s=state;SPOTS=SPOTS||wardSpots();s.speed=s.speed||1;s.wards=[];s.plan=[{mode:'lane',tasks:[]},{mode:'lane',tasks:[]}];s.planAt=0;s.policy={...POLICY_DEFAULT,...(loadPolicy()||{})};s.teamOrder=null;s.surrender=null;s.surrenderAsked=0;s.macroEvents={};s.waveAt=65;for(const i of s.inhibitors||[])i.hp=i.maxHp=380;for(const c of s.cores||[])c.hp=c.maxHp=1000;s.burns=[];
+ for(const t of s.structures){if(t.kind==='tower'){const hp=t.tier===3?480:t.tier===2?600:t.tier===1?520:400;t.hp=t.maxHp=hp;t.plates=0;t.heat=0;t.calm=0;}if(t.kind==='inhibitor'){t.hp=t.maxHp=300;}}
  for(const a of s.actors){a.level=1;a.xp=0;const pick=a.player&&s.playerSpells?s.playerSpells:DEFAULT_SPELLS[a.role];a.spells=pick.map(id=>({id,cd:id==='smite'?0:0}));a.wardCharges=a.role===4?2:1;a.wardRegen=0;a.task=null;a.recallAt=null;a.tpAt=null;a.lastHurt=-99;}
  if(s.playerSpells==null)s.playerSpells=null;log('比賽開始：14 分鐘前外塔有防護，護甲片可換取金錢。');};
 // ---------- damage hooks: level scaling, tower aggro, plates, XP, death timers, Nexus-tower respawn ----------
 const baseDamage=bDamage;
 bDamage=function(from,to,amount){const s=state;if(!s||s.done||!to||!bLive(to)){return baseDamage(from,to,amount);}
- if(from?.kind==='hero'){amount*=levelMul(from);if(from.exhaustUntil>s.time)amount*=.6;if(to.kind==='hero')amount*=.62;}
+ if(from?.kind==='hero'){amount*=levelMul(from);if(from.exhaustUntil>s.time)amount*=.6;if(to.kind==='hero')amount*=.62;if(to.kind==='minion')amount=Math.max(amount,lastHitDmg(from));}
+ if(['tower','inhibitor','core'].includes(to.kind)&&from?.kind==='minion')amount*=.5;
+ if(['tower','inhibitor','core'].includes(to.kind)&&from?.kind!=='herald'){const deep=to.kind!=='tower'||to.tier>=2;if(s.time>=FORTIFY)amount*=STRUCT_LATE*(deep&&s.time<1500?.8:1);else if(deep)amount*=.4;}
  if(to.kind==='hero'){amount/=tough(to);to.lastHurt=s.time;if(to.recallAt!=null){to.recallAt=null;}if(to.tpAt!=null&&from?.kind==='hero'){to.tpAt=null;}}
  if(to.kind==='tower'&&s.time<FORTIFY&&from?.kind!=='herald'){amount*=to.tier===0?.45:to.tier===1?.7:1;}
  if(from?.kind==='hero'&&to.kind==='hero'){const guard=s.structures.find(t=>t.kind==='tower'&&t.team===to.team&&t.hp>0&&dist(t,from)<(t.tier===3?95:110));if(guard){if(guard.focus!==from)guard.heat=0;guard.focus=from;}}
@@ -251,10 +254,10 @@ function laneBehaviour(a,lane,dt,stance){const s=state,foesHero=s.actors.filter(
  const caught=a.caughtUntil>s.time;FOCUS.delete(a);if(!caught)escape(a,foesHero);
  const back=(caught?10:stance==='trade'?6:fv<.8?48:22)-(lead>0?0:lead*32)+(a.player&&a.orderBackUntil>s.time?55:0),spot=stand(a,lane,back+(a.role===4?14:0));
  const tower=bStructuresTarget(a);const ownNearTower=s.minions.some(m=>m.team===a.team&&live(m)&&dist(m,tower)<110&&s.structures.includes(tower)&&tower.focus===m||m.team===a.team&&live(m)&&dist(m,tower)<100);
- if(!foeMinions.length&&reachMinions.length&&a.role!==4){const hit0=a.attack*a.power*levelMul(a)*1.05,m=reachMinions.filter(m=>m.hp<=hit0*1.8).sort((x,y)=>x.hp-y.hp)[0];
+ if(!foeMinions.length&&reachMinions.length&&a.role!==4){const hit0=Math.max(a.attack*a.power*levelMul(a),lastHitDmg(a))*1.02,m=reachMinions.filter(m=>m.hp<=hit0*1.8).sort((x,y)=>x.hp-y.hp)[0];
   const sp=m&&(()=>{const d=dist(a,m)||1,k=Math.min(1,a.range*.9/d);return{x:m.x+(a.x-m.x)*k,y:m.y+(a.y-m.y)*k};})();
   if(m&&!(underEnemyTower(a,sp)&&!ownNearTowerOf(a,lane))&&!(fv<.55*caution(a)&&a.hp<a.maxHp*.7&&s.actors.some(b=>b.team!==a.team&&live(b)&&b.kind==='hero'&&b.hp>b.maxHp*.5&&dist(b,m)<b.range+10))){moveTo(a,m,dt,a.range*.9);if(m.hp<=hit0&&dist(a,m)<=a.range)attack(a,m);return;}}
- if(foeMinions.length){const hit=a.attack*a.power*levelMul(a)*1.05,sorted=foeMinions.sort((x,y)=>x.hp-y.hp),kill=sorted.find(m=>m.hp<=hit),laning=s.time<FORTIFY,push=stance==='trade'||!foesHero.length||!laning;
+ if(foeMinions.length){const hit=Math.max(a.attack*a.power*levelMul(a),lastHitDmg(a))*1.02,sorted=foeMinions.sort((x,y)=>x.hp-y.hp),kill=sorted.find(m=>m.hp<=hit),laning=s.time<FORTIFY,push=stance==='trade'||!foesHero.length||!laning;
   if(kill&&a.role!==4){if(dist(a,kill)>a.range){if(!underEnemyTower(a,kill)||ownNearTowerOf(a,lane)){moveTo(a,kill,dt,a.range*.9);return;}}else if(a.cd<=0&&Math.random()>.12+.38*(1-iqOf(a)))attack(a,kill);else if(a.cd<=0)a.cd=.6;}
   else if(push&&(a.role!==4||sorted[0].hp<a.attack*2)){if(foeMinions.length>=3)bSkill(a,foeMinions[0]);attack(a,sorted[0]);}
   else if(a.role===4&&kill&&!s.actors.some(u=>u.team===a.team&&u!==a&&u.role===3&&live(u)&&dist(u,a)<200))attack(a,kill);}
