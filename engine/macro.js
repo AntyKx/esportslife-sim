@@ -127,7 +127,7 @@ function plan(t){const s=state,e=opp(t),us=s.actors.filter(a=>a.team===t&&live(a
   if(o.epic==='baron'){const theyStart=o.alive&&s.actors.some(a=>a.team===e&&live(a)&&dist(a,o)<150&&sees(t,a));if(us.length>=4&&(diff>=2||diff>=1&&P>1.1||P>1.3||theyStart&&contest>=.85)){mode='objective';obj=o;}}
   else if(contest>=want*(big?1.05:1)){mode='objective';obj=o;}
   else if(no.inT<30){mode=phase==='lane'?'lane':'trade';lane=o===s.dragon?0:2;}}
- if(mode==='group'&&pol.macro!=='group'&&!t||mode==='group'&&t&&s.time>1500&&P<.95){mode=pol.macro==='131'?'131':'41';}
+ if(mode==='group'&&(pol.macro!=='group'&&!t||s.time>1500&&P<.95)){mode=pol.macro==='131'?'131':'41';} // 後期落後時兩隊都會考慮分推
  const st=styleOf(t);if(!order&&s.time<LVL1_END&&st.lvl1!=='lane')mode='lvl1';
  const tasks=[];for(const a of s.actors.filter(a=>a.team===t)){let k=mode;
   if(mode==='lane')k=a.role===1?'jungle':'lane';
