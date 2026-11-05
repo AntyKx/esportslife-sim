@@ -45,7 +45,8 @@ const baseDamage=bDamage;
 bDamage=function(from,to,amount){const s=state;if(!s||s.done||!to||!bLive(to)){return baseDamage(from,to,amount);}
  if(from?.kind==='hero'){amount*=levelMul(from);if(from.exhaustUntil>s.time)amount*=.6;if(to.kind==='hero')amount*=.62;if(to.kind==='minion')amount=Math.max(amount,lastHitDmg(from));}
  if(['tower','inhibitor','core'].includes(to.kind)&&from?.kind==='minion')amount*=.5;
- if(to.kind==='minion'&&from?.kind==='minion')amount*=.6; // 0.79：小兵互打變慢，留時間給英雄補刀
+ if(to.kind==='minion'&&from?.kind==='minion')amount*=.45;
+ // // 0.79：小兵互打變慢，留時間給英雄補刀
  if(['tower','inhibitor','core'].includes(to.kind)&&from?.kind!=='herald'){const deep=to.kind!=='tower'||to.tier>=2;if(s.time>=FORTIFY)amount*=STRUCT_LATE*(deep&&s.time<1500?.8:1);else if(deep)amount*=.4;}
  if(to.kind==='hero'){amount/=tough(to);to.lastHurt=s.time;if(to.recallAt!=null){to.recallAt=null;}if(to.tpAt!=null&&from?.kind==='hero'){to.tpAt=null;}}
  if(to.kind==='tower'&&s.time<FORTIFY&&from?.kind!=='herald'){amount*=to.tier===0?.45:to.tier===1?.7:1;}
