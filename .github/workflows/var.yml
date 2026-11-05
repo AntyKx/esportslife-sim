@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        macro: [macro.js, macro.b.js, macro.c.js, macro.d.js]
+        macro: [macro.js, macro.e.js, macro.f.js]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
