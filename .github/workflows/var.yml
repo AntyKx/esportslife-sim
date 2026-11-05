@@ -1,0 +1,30 @@
+name: var
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: 每組場數
+        default: '40'
+      iq:
+        description: 電腦程度
+        default: '0.95'
+jobs:
+  var:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        macro: [macro.js, macro.b.js, macro.c.js, macro.d.js]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: run
+        env:
+          MACRO: ${{ matrix.macro }}
+        run: node sim/report.cjs ${{ inputs.games }} ${{ inputs.iq }} | tee result.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: var-${{ matrix.macro }}
+          path: result.json
