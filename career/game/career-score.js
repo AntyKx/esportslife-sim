@@ -2,19 +2,21 @@
 // 0.89 生涯分（參考足球人生）：整段人生一個分數，決定最後的評價等級。
 // 0.92 依雲端 75 段生涯模擬重做：原本出賽分太多（平均 827，能力練高就每季 100 多分）、國內冠軍太容易累積、弱賽區反而分數最高。
 // 生涯分 = 天梯 + 青訓 + Σ 職業各季 min(上限, 局數 ×（評分 − 6.5）× 0.35) × 賽區權重 + 榮譽（依頭銜分級、國內頭銜乘賽區權重）+ 人氣
-// 等級：傳奇／名人堂／明星選手／職業選手／職業過客；沒打上職業的是「平凡人生」。
+// 等級：傳奇／名人堂／明星選手／主力選手／職業選手／職業過客；沒打上職業的是「平凡人生」。
 // 門檻是依公式推估的暫定值，之後用雲端模擬校準（像足球的 p98／p90／p65／p25）。只讀資料，不改遊戲狀態。
 (()=>{
 const LADDER_PTS=[0,2,4,7,10,14,18,24,30,40];
 const REG_W={SCL:1.3,DRL:1.25,EUL:1,NSL:.85,PRL:.75,SXL:.65};
 const BASE=6.5,K=.35,SEASON_CAP=45;
-// 榮譽：國際賽不乘賽區權重，國內賽段冠軍與年度最佳乘當年所屬賽區權重
+// 榮譽：國際賽不乘賽區權重；國內賽段冠軍與年度最佳乘「賽區權重的平方」（弱賽區年年稱霸太容易，模擬裡比強賽區高出一倍以上）
 const HONOR=[[/世界大賽 冠軍/,400,0],[/世界大賽 亞軍/,150,0],[/世界大賽 四強/,70,0],[/季中邀請賽 冠軍/,180,0],[/開季先鋒賽 冠軍/,110,0],[/年度最佳/,30,1],[/冠軍$/,35,1]];
+// 門檻依雲端 120 段機器人生涯校準（0.92）：只靠國內稱霸最高約 980 分，傳奇要再加上國際賽頭銜（世界冠軍 400）
 const TIERS=[
- {n:'傳奇',min:1500,col:'#ffd36b',desc:(r,rg)=>`${rg}歷史上最偉大的${r}`},
- {n:'名人堂',min:900,col:'#f0b85a',desc:(r,rg)=>`${rg}名人堂${r}`},
- {n:'明星選手',min:500,col:'#8fd3ff',desc:(r,rg)=>`${rg}的明星${r}`},
- {n:'職業選手',min:200,col:'#9fe0b8',desc:r=>`穩定的職業${r}`},
+ {n:'傳奇',min:1100,col:'#ffd36b',desc:(r,rg)=>`${rg}歷史上最偉大的${r}`},
+ {n:'名人堂',min:850,col:'#f0b85a',desc:(r,rg)=>`${rg}名人堂${r}`},
+ {n:'明星選手',min:650,col:'#8fd3ff',desc:(r,rg)=>`${rg}的明星${r}`},
+ {n:'主力選手',min:450,col:'#7fd6c8',desc:(r,rg)=>`${rg}的主力${r}`},
+ {n:'職業選手',min:300,col:'#9fe0b8',desc:r=>`穩定的職業${r}`},
  {n:'職業過客',min:0,col:'#c9c2d8',desc:()=>'職業舞台上的過客'}];
 const ORDINARY={n:'平凡人生',min:0,col:'#b9c8ff',desc:()=>'沒有站上職業舞台的玩家'};
 const ROLE=['上路','打野','中路','射手','輔助'];
@@ -30,7 +32,7 @@ function calc(c){c=c||CAREER.data;const out={ladder:0,academy:0,pro:0,honor:0,fa
  if(p){let g=0;for(const [y,r] of Object.entries(p.seasons||{})){if(!r.g)continue;const avg=r.s/r.g,w=REG_W[regionOf(r.team)]??1,pts=Math.max(0,Math.min(SEASON_CAP,r.g*(avg-BASE)*K))*w;g+=r.g;out.pro+=pts;seasons.push({year:+y,g:r.g,avg,pts,team:r.team});}
   const miss=Math.max(0,(p.games||0)-g);out.pro+=Math.min(miss*.12,SEASON_CAP*Math.ceil(miss/80)); // 舊存檔沒有逐季評分：用一般表現估
   const wOf=y=>REG_W[regionOf(p.seasons?.[y]?.team||p.team)]??1;
-  out.honor=(p.achievements||[]).reduce((a,x)=>{const h=HONOR.find(([re])=>re.test(x.title||''));return a+(h?h[1]*(h[2]?wOf(x.year):1):(x.pts||0));},0);}
+  out.honor=(p.achievements||[]).reduce((a,x)=>{const h=HONOR.find(([re])=>re.test(x.title||''));return a+(h?h[1]*(h[2]?wOf(x.year)**2:1):(x.pts||0));},0);}
  out.fans=Math.min(100,(c.fans||0)/50);
  for(const k in out)out[k]=Math.round(out[k]);
  const sc=Object.values(out).reduce((a,b)=>a+b,0);return {sc,parts:out,seasons,pro:!!p};}
