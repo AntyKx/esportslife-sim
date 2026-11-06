@@ -48,7 +48,7 @@ const ACH=[
  {id:'worlds',cat:'榮譽',n:'霧河之巔',d:'世界大賽冠軍 1／2／3 座',lv:[1,2,3],tn:['世界冠軍','二冠王','三冠王朝'],r:'e',v:()=>count(/霧河世界大賽 冠軍$/)},
  {id:'slam',cat:'榮譽',n:'大滿貫',d:'同一年拿下季中邀請賽與世界大賽冠軍',r:'l',v:()=>{const a=P()?.achievements||[];return a.some(x=>/季中邀請賽 冠軍$/.test(x.title)&&a.some(y=>y.year===x.year&&/霧河世界大賽 冠軍$/.test(y.title)))?1:0;}},
  {id:'best',cat:'榮譽',n:'年度最佳',d:'拿下年度最佳位置 1／3／5 次',lv:[1,3,5],tn:['年度最佳','聯賽門面','位置代名詞'],r:'r',v:()=>count(/^年度最佳/)},
- {id:'hof',cat:'榮譽',n:'名人堂',d:'生涯分達到 650／850／1100',lv:[650,850,1100],tn:['明星選手','名人堂','傳奇'],r:'e',v:legend},
+ {id:'hof',cat:'榮譽',n:'名人堂',d:'生涯分達到 400／600／900',lv:[400,600,900],tn:['明星選手','名人堂','傳奇'],r:'e',v:legend},
  // ---- 軌跡 ----
  {id:'zero2hero',cat:'軌跡',n:'從網咖到世界',d:'從天梯玩家出身，最後拿下世界大賽冠軍',r:'l',hid:true,v:()=>C()?.ladderDone&&count(/霧河世界大賽 冠軍$/)?1:0},
  {id:'prodigy',cat:'軌跡',n:'神童',d:'19 歲以前拿下世界大賽冠軍',r:'e',hid:true,v:()=>(P()?.achievements||[]).some(a=>/霧河世界大賽 冠軍$/.test(a.title)&&ageAt(a.year)<=18)?1:0},
