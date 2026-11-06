@@ -210,26 +210,28 @@ scaleTrain('heroTrain');
 const prevAge=GROWTH.age;GROWTH.age=function(c){const before={...c.stats};const r=prevAge.apply(this,arguments);if(has(c,'veteran')){fire('veteran');}if(has(c,'veteran'))for(const k of GROWTH.KEYS){const d=before[k]-c.stats[k];if(d>0)c.stats[k]=Math.round((c.stats[k]+d/2)*10)/10;}return r;};
 
 // ── 建立角色畫面：種子欄位＋球探報告 ──
-let cur=null;try{cur=localStorage.getItem('esports-seed-draft');}catch{}if(!cur)cur=newSeed();
+// 0.92 開局不再預覽天賦等級（原本可無限重抽到 S 才開始）：預設隨機、建立生涯後才揭曉；想挑戰朋友的種子可以自己填。
+let cur=newSeed(),custom='';
 function report(seed){const rl=typeof role==='number'?role:0;const t=roll(seed,rl),T=TIERS[t.tier];
  const golds=t.abilities.filter(i=>A[i].c==='gold').length,pos=t.abilities.filter(i=>A[i].c!=='red').length,neg=t.abilities.length-pos;
  return `<div class="tl-report"><b class="tier-${T.g}">天賦 ${T.g}</b><span>球探評語：${T.g==='S'?'百年一見的怪物，具備頂級天賦':T.g==='A'?'天才型選手，有機會成為明星':T.g==='B'?'有職業水準的潛力':'資質普通，要靠努力'}。${GROWTH.NAME[t.strong[0]]}、${GROWTH.NAME[t.strong[1]]}突出，${GROWTH.NAME[t.weak]}偏弱。</span><small>天生特殊能力 ${pos} 個${golds?'（含金色！）':''}${neg?` · 隱憂 ${neg} 個`:''}，部分要在比賽中觸發才會揭曉</small></div>`;}
 function seedField(){const old=document.querySelector('#talentField');if(window.CAREER?.data){old?.remove();return;}
  const host=document.querySelector('.mode-pick')||document.querySelector('#startCountry')?.closest('.namefield')||document.querySelector('.namefield');if(!host)return;
  let box=old;if(!box){box=document.createElement('div');box.id='talentField';box.className='namefield talent-field';host.after(box);
-  box.addEventListener('click',ev=>{if(ev.target.closest('#seedReroll')){cur=newSeed();save();draw2();}});
-  box.addEventListener('change',ev=>{if(ev.target.id==='seedInput'){const v=cleanSeed(ev.target.value);if(v){cur=v;save();}draw2();}});}
- function draw2(){box.innerHTML=`<span>天賦種子</span><div class="seed-row"><input id="seedInput" value="${cur}" maxlength="16" aria-label="天賦種子"><button type="button" id="seedReroll" class="quiet">🎲 重抽</button></div>${report(cur)}<small class="seed-hint">同一組種子＝同樣的天賦，可以分享給朋友挑戰。</small>`;}
+  box.addEventListener('click',ev=>{if(ev.target.closest('#seedClear')){custom='';cur=newSeed();draw2();}});
+  box.addEventListener('change',ev=>{if(ev.target.id==='seedInput'){const v=cleanSeed(ev.target.value);custom=v;cur=v||newSeed();draw2();}});}
+ function draw2(){box.innerHTML=`<details class="seed-opt"${custom?' open':''}><summary>天賦：建立生涯後由球探揭曉${custom?'（使用指定種子）':''}</summary><div class="seed-row"><input id="seedInput" value="${custom}" maxlength="16" placeholder="選填：朋友分享的種子，例如 NX-AB12-CD" aria-label="指定天賦種子">${custom?'<button type="button" id="seedClear" class="quiet">改回隨機</button>':''}</div><small class="seed-hint">不填就隨機。同一組種子＝同樣的天賦，生涯中可以在選手卡看到自己的種子，分享給朋友挑戰。</small></details>`;}
  draw2();}
-function save(){try{localStorage.setItem('esports-seed-draft',cur);}catch{}}
+function save(){try{localStorage.removeItem('esports-seed-draft');}catch{}}
 let lastRole=null;
 let pendingNew=false;
 document.querySelector('#start')?.addEventListener('click',()=>{if(!window.CAREER?.data)pendingNew=true;},true);
 
 const prevRender=renderSetup;
 renderSetup=function(){const r=prevRender.apply(this,arguments);const c=window.CAREER?.data;
- if(c&&!c.talent){apply(c,pendingNew?cur:'LEGACY-'+(c.id||'x'),pendingNew);if(pendingNew){cur=newSeed();save();}pendingNew=false;try{CAREER.save();}catch{}try{window.PLAYER_BOARD?.update();}catch{}}
- const cc=window.CAREER?.data;if(cc?.talent){cc.talent.over=cc.talent.over||{};cc.talent.hidden=cc.talent.hidden||[];try{careerDeltas(cc);weekly(cc);mountSp(cc);}catch(err){console.warn(err);}}
+ if(c&&!c.talent){apply(c,pendingNew?cur:'LEGACY-'+(c.id||'x'),pendingNew);if(pendingNew){custom='';cur=newSeed();save();}pendingNew=false;try{CAREER.save();}catch{}try{window.PLAYER_BOARD?.update();}catch{}}
+ const cc=window.CAREER?.data;if(cc?.talent&&!cc.talent.revealed&&!String(cc.talent.seed).startsWith('LEGACY')){const hub=document.querySelector('#careerHub');if(hub&&!hub.querySelector('.tl-reveal')){const d=document.createElement('div');d.className='tl-reveal panel';d.innerHTML=`<p class="eyebrow">球探報告 · 種子 ${cc.talent.seed}</p>${report(cc.talent.seed)}<button type="button" class="quiet">知道了</button>`;d.querySelector('button').onclick=()=>{cc.talent.revealed=true;try{CAREER.save();}catch{}d.remove();};hub.prepend(d);}}
+ if(cc?.talent){cc.talent.over=cc.talent.over||{};cc.talent.hidden=cc.talent.hidden||[];try{careerDeltas(cc);weekly(cc);mountSp(cc);}catch(err){console.warn(err);}}
  if(typeof role==="number"&&role!==lastRole){lastRole=role;document.querySelector("#talentField")?.remove();}seedField();return r;};
 
 // ── 0.61 第二步：揭曉、特訓、克服、每週事件、生涯型能力 ──

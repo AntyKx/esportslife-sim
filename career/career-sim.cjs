@@ -8,7 +8,7 @@ useBrowser(async({run,wait,sleep,errors})=>{
   const r=await run(`(async()=>{
    const R=Math.random,pick=a=>a[Math.floor(R()*a.length)];
    window.__rt=[];localStorage.removeItem('nexus-life-career-v1');rookieName='bot'+${k};CAREER.create();LADDER.start?.(CAREER.data);
-   const c=CAREER.data;c.role=Math.floor(R()*5);c.country=pick(Object.keys(WORLD.COUNTRIES));
+   const c=CAREER.data;c.role=Math.floor(R()*5);TALENT.apply(c,TALENT.newSeed(),true);c.country=pick(Object.keys(WORLD.COUNTRIES));
    LADDER.data.peak=5+Math.floor(R()*4);c.results=Array.from({length:6},()=>({rating:+(6.4+R()*1.8).toFixed(1)}));c.finalist=R()<.5;c.champion=c.finalist&&R()<.5;
    c.age=18;c.stage='complete';c.promoChecked=true;CAREER.save();renderSetup();
    document.querySelector('[data-full="0"]').click();
