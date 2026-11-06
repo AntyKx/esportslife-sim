@@ -14,6 +14,8 @@ const FOCUS=new WeakMap(),GANK=new WeakMap(),CAMP_AGGRO=new WeakMap();
 const opp=t=>1-t,live=a=>bLive(a),T=()=>state;
 const xpNeed=l=>80+85*l;
 const levelMul=a=>1+.075*((a.level||1)-1);
+// 0.83 近戰補兵的踏步距離：近戰英雄補小兵時可以多踏 30 距離出手（只限小兵）。雲端 40 場：上路 10 分鐘補兵 37→50、首塔 11.5→13.8 分
+const meleeStep=(a,t)=>t?.kind==='minion'&&a.range<100?30:0;
 const lastHitDmg=a=>20+2.2*((a.level||1)-1),STRUCT_LATE=.62;
 const tough=a=>1+.085*((a.level||1)-1);
 const deathTime=(lvl,t)=>[6,7,8,9,11,13,16,19,22,25,28,30,32,34,36,38,40,42][Math.max(0,Math.min(17,(lvl||1)-1))]*(1+Math.max(0,t-900)/2400);
@@ -213,7 +215,7 @@ function goHome(a,dt){const s=state,home=bBase(a.team),foes=s.actors.filter(b=>b
  if(a.recallAt!=null){if(foes.length){a.recallAt=null;}else if(s.time-a.recallAt>=RECALL){Object.assign(a,home);a.nav=null;a.recallAt=null;s.recallCount=(s.recallCount||0)+1;return true;}else return false;}
  if(a.rootUntil<=s.time)bWalk(a,home,dt*speed(a));return false;}
 function speed(a){return (a.role===1?15:14)*(a.hasteUntil>T().time?1.15:1);}
-function attack(a,target){const s=state;if(!target||a.cd>0||dist(a,target)>a.range)return;if(['tower','inhibitor','core'].includes(target.kind)&&!bCanHit(a,target))return;a.cd=a.hasteUntil>s.time?1.1:1.6;const amount=a.attack*a.power*Math.pow(Math.max(1,s.gold[a.team])/Math.max(1,s.gold[1-a.team]),.2)*(s.heroBuff[a.team]>s.time?1.12:1);if(a.player&&target.kind==='tower')s.personal.towerDamage+=Math.min(target.hp,amount);bDamage(a,target,amount);bShot(a,target);}
+function attack(a,target){const s=state;if(!target||a.cd>0||dist(a,target)>a.range+meleeStep(a,target))return;if(['tower','inhibitor','core'].includes(target.kind)&&!bCanHit(a,target))return;a.cd=a.hasteUntil>s.time?1.1:1.6;const amount=a.attack*a.power*Math.pow(Math.max(1,s.gold[a.team])/Math.max(1,s.gold[1-a.team]),.2)*(s.heroBuff[a.team]>s.time?1.12:1);if(a.player&&target.kind==='tower')s.personal.towerDamage+=Math.min(target.hp,amount);bDamage(a,target,amount);bShot(a,target);}
 function towerBlocked(a,p){const s=T();for(const t of s.structures){if(t.kind!=='tower'||t.team===a.team||t.hp<=0)continue;const r=(t.tier===3?95:110)+8;if(dist(t,p)>=r)continue;const tanked=s.minions.some(m=>m.team===a.team&&live(m)&&dist(m,t)<r-4)&&!(t.focus===a);if(!tanked)return t;}return null;}
 function moveTo(a,p,dt,keep=0,force=false){const s=T();if(!p||a.rootUntil>s.time)return;const ox=a.x,oy=a.y;
  if(!force){const here=towerBlocked(a,a);if(here){const d=dist(a,here)||1;bWalk(a,{x:a.x+(a.x-here.x)/d*40,y:a.y+(a.y-here.y)/d*40},dt*speed(a));return;}}
@@ -257,9 +259,9 @@ function laneBehaviour(a,lane,dt,stance){const s=state,foesHero=s.actors.filter(
  const tower=bStructuresTarget(a);const ownNearTower=s.minions.some(m=>m.team===a.team&&live(m)&&dist(m,tower)<110&&s.structures.includes(tower)&&tower.focus===m||m.team===a.team&&live(m)&&dist(m,tower)<100);
  if(!foeMinions.length&&reachMinions.length&&a.role!==4){const hit0=Math.max(a.attack*a.power*levelMul(a),lastHitDmg(a))*1.02,m=reachMinions.filter(m=>m.hp<=hit0*(a.range<100?2.6:1.8)).sort((x,y)=>x.hp-y.hp)[0];
   const sp=m&&(()=>{const d=dist(a,m)||1,k=Math.min(1,a.range*.9/d);return{x:m.x+(a.x-m.x)*k,y:m.y+(a.y-m.y)*k};})();
-  if(m&&!(underEnemyTower(a,sp)&&!ownNearTowerOf(a,lane))&&!(fv<.55*caution(a)&&a.hp<a.maxHp*.7&&s.actors.some(b=>b.team!==a.team&&live(b)&&b.kind==='hero'&&b.hp>b.maxHp*.5&&dist(b,m)<b.range+10))){moveTo(a,m,dt,a.range*.9);if(m.hp<=hit0&&dist(a,m)<=a.range)attack(a,m);return;}}
+  if(m&&!(underEnemyTower(a,sp)&&!ownNearTowerOf(a,lane))&&!(fv<.55*caution(a)&&a.hp<a.maxHp*.7&&s.actors.some(b=>b.team!==a.team&&live(b)&&b.kind==='hero'&&b.hp>b.maxHp*.5&&dist(b,m)<b.range+10))){moveTo(a,m,dt,a.range*.9);if(m.hp<=hit0&&dist(a,m)<=a.range+meleeStep(a,m))attack(a,m);return;}}
  if(foeMinions.length){const hit=Math.max(a.attack*a.power*levelMul(a),lastHitDmg(a))*1.02,sorted=foeMinions.sort((x,y)=>x.hp-y.hp),kill=sorted.find(m=>m.hp<=hit),laning=s.time<FORTIFY,push=stance==='trade'||!foesHero.length||!laning;
-  if(kill&&a.role!==4){if(dist(a,kill)>a.range){if(!underEnemyTower(a,kill)||ownNearTowerOf(a,lane)){moveTo(a,kill,dt,a.range*.9);return;}}else if(a.cd<=0&&Math.random()>.12+.38*(1-iqOf(a)))attack(a,kill);else if(a.cd<=0)a.cd=.6;}
+  if(kill&&a.role!==4){if(dist(a,kill)>a.range+meleeStep(a,kill)){if(!underEnemyTower(a,kill)||ownNearTowerOf(a,lane)){moveTo(a,kill,dt,a.range*.9);return;}}else if(a.cd<=0&&Math.random()>.12+.38*(1-iqOf(a)))attack(a,kill);else if(a.cd<=0)a.cd=.6;}
   else if(push&&(a.role!==4||sorted[0].hp<a.attack*2)){if(foeMinions.length>=3)bSkill(a,foeMinions[0]);attack(a,sorted[0]);}
   else if(a.role===4&&kill&&!s.actors.some(u=>u.team===a.team&&u!==a&&u.role===3&&live(u)&&dist(u,a)<200))attack(a,kill);}
  else if(tower&&dist(a,tower)<a.range+5&&bCanHit(a,tower)&&ownNearTower&&!foesHero.length)attack(a,tower);

@@ -1,0 +1,21 @@
+/* 0.90 比賽畫面版面修正：計分板不被切、兩側選手卡不重疊 */
+/* 計分板：高度跟著內容，不再固定 8.5% 被裁掉隊名與比分 */
+.broadcast-stage .cast-top{height:auto!important;min-height:0!important;overflow:visible!important;padding:2px 0}
+.broadcast-stage .cast-team{padding:3px 12px}
+/* 兩側選手卡：名字一行、位置＋KDA 同一行、血條一行；卡片高度跟著內容，不再被壓扁後文字溢出 */
+.broadcast-stage .cast-roster{justify-content:flex-start}
+.broadcast-stage .cast-champion,.broadcast-stage .cast-right .cast-champion{flex:0 1 auto!important;height:auto!important;max-height:none!important;min-height:0!important;overflow:hidden;padding:5px 6px!important;align-items:center}
+.broadcast-stage .cast-champion>div{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:4px;row-gap:2px;align-items:center}
+.broadcast-stage .cast-champion>div>strong{grid-column:1/-1;line-height:1.2}
+.broadcast-stage .cast-champion>div>small{grid-column:1;grid-row:2;line-height:1.1}
+.broadcast-stage .cast-champion>div>em{grid-column:2;grid-row:2;line-height:1.1;white-space:nowrap}
+.broadcast-stage .cast-champion>div>.cast-health{grid-column:1/-1;grid-row:3}
+.broadcast-stage .cast-right .cast-champion>div{grid-template-columns:auto minmax(0,1fr)}
+.broadcast-stage .cast-right .cast-champion>div>small{grid-column:2}
+.broadcast-stage .cast-right .cast-champion>div>em{grid-column:1}
+/* 近景時地圖外的底色改深色，避免白邊 */
+.broadcast-stage.zoomed canvas{background:#0f1a1f}
+/* 資源倒數標籤放在計分板下方，不壓到計分板 */
+.broadcast-stage .cast-resources{z-index:4}
+@media (min-width:761px) and (min-height:601px){.broadcast-stage .cast-resources{top:64px!important}}
+@media (max-width:760px){#zoomBack{top:auto!important;bottom:8px!important;right:8px!important}}

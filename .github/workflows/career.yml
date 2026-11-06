@@ -1,0 +1,46 @@
+name: career
+on:
+  workflow_dispatch:
+    inputs:
+      per:
+        description: 每個分片的生涯數
+        default: '15'
+jobs:
+  shard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: simulate careers
+        run: |
+          cd career/game && (python3 -m http.server 8893 --bind 127.0.0.1 >/dev/null 2>&1 &) && cd ../..
+          sleep 2
+          CHROME=$(which google-chrome || which chromium) node career/career-sim.cjs ${{ inputs.per }} result-${{ matrix.shard }}.json | tail -n 40
+      - uses: actions/upload-artifact@v4
+        with:
+          name: career-${{ matrix.shard }}
+          path: result-${{ matrix.shard }}.json
+  report:
+    needs: shard
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: results
+      - name: report
+        run: |
+          node career/report.cjs results | tee report.json
+          echo '```' >> "$GITHUB_STEP_SUMMARY"; cat report.json >> "$GITHUB_STEP_SUMMARY"; echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: report
+          path: report.json

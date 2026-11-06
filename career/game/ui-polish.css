@@ -1,0 +1,605 @@
+/* Shared spacing and column rules for the entire prototype. */
+:root{--ui-gap:20px;--ui-inset:24px;--ui-radius:18px}
+body{font-synthesis:none;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit}
+button{touch-action:manipulation}
+h1,h2,h3,p{overflow-wrap:break-word}
+button,small,b,strong,meter{font-variant-numeric:tabular-nums}
+.panel,.careerwelcome,.life-dialog{padding:var(--ui-inset);border-radius:var(--ui-radius)}
+.grid,.careergrid,.draftgrid{gap:var(--ui-gap);align-items:start}
+.grid>*,.careergrid>*,.draftgrid>*,.row>*{min-width:0}
+.panel>h2:not(:first-child){margin-top:24px}
+.row{gap:12px;align-items:center}
+.row h2,.row h3{margin:0}
+.row>button,.row>div:has(button){flex-shrink:0}
+.panel>.row{margin-bottom:16px}
+.panel>p{margin:12px 0 18px}
+.eyebrow{line-height:1.6;letter-spacing:1px}
+.primary,.secondary{min-height:48px;line-height:1.55}
+.quiet{min-height:34px;line-height:1.5;white-space:nowrap}
+.life-top{align-items:center}
+.life-identity strong{line-height:1.4}
+.life-nav button{min-height:36px;display:inline-flex;align-items:center;justify-content:center}
+.life-season{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;column-gap:9px}
+.life-season>small{margin-right:2px}
+.life-season>span{min-width:0;line-height:1.55}
+.life-meters{column-gap:20px}
+.life-meter>div{align-items:baseline;line-height:1.5}
+.life-meter b{min-width:2ch;text-align:right}
+.life-meter i{margin-top:8px}
+.careerwelcome{margin-bottom:var(--ui-gap)}
+.careerwelcome h2{max-width:100%;line-height:1.5}
+.namefield{max-width:480px;line-height:1.6}
+.namefield input{max-width:none;width:100%;margin-top:8px}
+.roles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-bottom:22px}
+.roles>button{min-width:0;min-height:40px;padding:8px 3px;white-space:nowrap}
+.hero{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:8px 12px;align-items:center;padding:14px;text-align:left}
+.hero>.avatar{grid-column:1;grid-row:1;width:48px;height:54px}
+.hero>.avatar canvas{width:48px;height:54px}
+.hero>span:not(.avatar):not(.rate):not(.skillpreview){grid-column:2;min-width:0}
+.hero strong{line-height:1.45}
+.hero small{margin-top:3px;line-height:1.65}
+.hero .rate{grid-column:3;margin:0;text-align:right;align-self:center;font-size:11px}
+.hero .skillpreview{grid-column:1/-1;margin:0;padding:8px 0 0;border-top:1px solid var(--line);line-height:1.7}
+.hero:not(:has(.rate))>span:not(.avatar):not(.skillpreview){grid-column:2/-1}
+.storychoice,.choice{display:block;text-align:left;padding:14px 16px;margin:10px 0;line-height:1.65;width:100%;min-height:68px}
+.storychoice small,.choice small{display:block;margin-top:5px;line-height:1.65}
+.courses{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:stretch}
+.courses button{padding:12px 4px;min-height:64px;line-height:1.5}
+.courses small{display:block;margin-top:6px;line-height:1.5}
+.build-plans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.build-plans button{margin:0;min-height:40px;text-align:center;padding:10px 6px}
+.equipment-planner>h3{margin:0 0 8px}
+.equipment-planner>p{margin:0 0 12px}
+.standings>div{display:grid;grid-template-columns:minmax(70px,1fr) minmax(82px,auto) 30px;align-items:center;gap:10px;padding:12px 0}
+.standings>div>small{white-space:nowrap;text-align:right;letter-spacing:0}
+.standings>div>b{text-align:right;line-height:1.4}
+.schedule>div{display:grid;grid-template-columns:minmax(0,1fr) 40px;gap:12px;align-items:center;padding:11px 0}
+.schedule>div>b{text-align:right}
+.careerhead{gap:12px;margin-bottom:16px}
+.careerhead .quiet{max-width:none}
+.league-summary{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.league-summary::after{float:none}
+.banlist{align-items:stretch;grid-auto-rows:1fr}
+.banlist button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 5px;line-height:1.5}
+.banlist small{margin:0}
+#draft>h1{line-height:1.5;margin-bottom:20px}
+#draft>h1 span{line-height:1.7}
+.maptools{gap:10px;padding:12px 16px;align-items:center}
+.maptools>div{display:flex;gap:6px;align-items:center}
+.maptools>span{line-height:1.5}
+.maptools button{min-height:32px}
+.cast-camera-tools{flex-wrap:wrap;gap:6px;padding:10px 16px}
+.cast-camera-tools>span{line-height:1.6}
+.cast-camera-tools button{min-height:30px;line-height:1.4}
+.mapfoot{gap:12px;line-height:1.65;align-items:center}
+.overview-bar{align-items:center;padding:12px 16px}
+.overview-bar .cast-player{align-items:center;gap:10px}
+.overview-bar .cast-player small{margin:3px 0;line-height:1.5}
+.overview-bar .cast-player span{line-height:1.55}
+.overview-hint{line-height:1.65;text-align:right;justify-content:flex-end}
+.equipment-heading{align-items:center;margin-bottom:12px}
+.equipment-heading h3{line-height:1.5;margin-top:3px}
+.equipment-heading small{display:block;line-height:1.5;letter-spacing:1px}
+.equipment-heading>button{flex-shrink:0}
+.equipment-teams{padding:8px 10px;line-height:1.5}
+.equipment-pair{grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);padding:9px 5px;column-gap:6px}
+.equipment-hero{gap:10px}
+.equipment-identity strong{font-size:12px;line-height:1.55}
+.equipment-identity small{display:grid;grid-template-columns:72px 46px;justify-content:start;gap:8px;margin-top:3px;font-size:11px;line-height:1.5}
+.enemy .equipment-identity small{justify-content:end}
+.stat-kda{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;color:inherit!important}
+.stat-kda>span{color:inherit!important;text-align:center}
+.stat-kda>span+span{border-left:1px solid var(--line)}
+.stat-cs{text-align:right;white-space:nowrap}
+.match-six{gap:4px;margin-top:6px}
+.equipment-role{font-size:10px;line-height:1.5}
+.equipment-foot{line-height:1.7;margin-top:12px}
+.battlemeters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:14px}
+.battlemeters small{line-height:1.6}
+.battlemeters meter{display:block;margin:6px 0;width:100%}
+.rifttimers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.rifttimers>span{min-width:0;padding:12px;line-height:1.6}
+.rifttimers b{line-height:1.5}
+.resultstats{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.resultstats>span{padding:14px 10px;text-align:center;line-height:1.6;min-width:0}
+.resultstats b{font-size:20px;line-height:1.5;white-space:nowrap}
+.life-dialog-head{align-items:center;gap:14px}
+.life-dialog-head h2{line-height:1.5}
+.life-dialog-head>button{flex-shrink:0}
+.life-dialog dl>div{display:grid;grid-template-columns:90px minmax(0,1fr);align-items:baseline;gap:16px}
+.life-dialog dd{text-align:right;overflow-wrap:anywhere;line-height:1.7}
+.shop-wallet{align-items:center;line-height:1.5}
+.shop-wallet strong{white-space:nowrap;line-height:1.4}
+.shop-wallet>span{text-align:right}
+.gear-mode{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gear-mode button{min-height:42px;padding:10px 6px}
+.shop-filters{gap:6px}
+.shop-filters button{min-width:48px;min-height:36px;padding:8px 10px}
+.shop-items article{display:grid;grid-template-columns:36px minmax(0,1fr) 88px;gap:12px;padding:13px 12px;align-items:center}
+.shop-items article>div{min-width:0}
+.shop-items strong{font-size:14px;line-height:1.5}
+.shop-items p{line-height:1.65;margin:4px 0}
+.shop-items small{display:block;font-size:11px;line-height:1.5}
+.shop-items button{width:100%;min-height:38px;padding:9px 5px;font-size:12px;text-align:center}
+.gear-slot{padding:9px 3px}
+.shop-message{line-height:1.7}
+.action-dock button{min-height:48px;line-height:1.5}
+body[data-theme]:not([data-theme=classic]) #power{background:var(--surface-raised);color:var(--muted);border-color:var(--line)}
+body[data-theme]:not([data-theme=classic]) :is(#stats,#log,.hero .skillpreview,.hero small,.overview-hint,.cast-champion strong,.cast-champion em){color:var(--muted)}
+body[data-theme]:not([data-theme=classic]) #draft>h1{color:var(--text)}
+body[data-theme]:not([data-theme=classic]) #draft>h1 span{color:var(--muted)}
+@media(max-width:760px){
+ :root{--ui-gap:16px;--ui-inset:18px;--ui-radius:16px}
+ .life-meters{column-gap:12px}.life-season{column-gap:7px}
+ .hero{grid-template-columns:40px minmax(0,1fr) auto;gap:8px 10px;padding:12px}
+ .hero>.avatar,.hero>.avatar canvas{width:40px;height:48px}.hero strong{font-size:15px}.hero .rate{font-size:10px}
+ .careerhead{align-items:center}.careerhead h2{font-size:17px;line-height:1.5}.careerhead .quiet{font-size:10px;padding:8px;max-width:98px;white-space:normal}
+ .roles>button{min-height:38px}.banlist{gap:7px}
+ .life-dialog-head h2{font-size:18px}.life-dialog-head .eyebrow{font-size:10px}
+ .maptools{padding:10px 12px;align-items:flex-start}.maptools>div{justify-content:flex-end;flex:1}.maptools>span{padding-top:5px}
+ .cast-camera-tools{padding:8px 12px;gap:4px}.cast-camera-tools>span{flex-basis:100%;margin:0 0 2px}.cast-camera-tools button{padding:6px 10px;font-size:11px}
+ .overview-hint{align-items:flex-end}.overview-bar{padding:10px 12px}.mapfoot{padding:8px 12px;flex-wrap:wrap;gap:4px}
+ .equipment-pair{grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr);column-gap:3px;padding:8px 1px}.equipment-hero{gap:5px}
+ .equipment-identity strong{font-size:10px}.equipment-identity small{grid-template-columns:minmax(43px,54px) 32px;gap:4px;font-size:9px}
+ .match-six{gap:2px;margin-top:5px}.match-item{width:clamp(12px,3.6vw,20px);height:clamp(12px,3.6vw,20px)}
+ .equipment-heading small{font-size:8px}.equipment-role{font-size:8px}.equipment-foot{display:block;font-size:9px}
+ .resultstats{grid-template-columns:repeat(2,minmax(0,1fr))}.resultstats b{font-size:18px}
+ .shop-items article{grid-template-columns:32px minmax(0,1fr) 70px;gap:9px;padding:12px 9px}.shop-items .item-icon{width:32px;height:32px}
+ .shop-wallet{flex-direction:row;align-items:center;gap:10px}.shop-wallet>span{font-size:11px;max-width:50%}
+ .shop-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.shop-filters button{min-width:0;padding:8px 3px;font-size:11px}
+}
+@media(max-width:350px){
+ :root{--ui-inset:14px}.life-season{grid-template-columns:auto auto minmax(0,1fr)}.life-season>em{grid-column:3;justify-self:start;font-size:10px}
+ .life-nav button{padding:7px 6px;font-size:11px}.life-identity strong{font-size:18px}.life-meter>div{font-size:9px}.life-meter b{font-size:16px}
+ .standings>div{grid-template-columns:minmax(60px,1fr) auto 24px;gap:7px}.standings small{font-size:10px}
+ .hero{gap:7px}.hero .rate{font-size:9px}.shop-items article{grid-template-columns:28px minmax(0,1fr) 60px;gap:7px}.shop-items .item-icon{width:28px;height:28px}
+}
+
+/* 0.36 英雄池擴充：每位置 16 位英雄 */
+#heroes{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;max-height:760px;overflow-y:auto;padding-right:4px}
+#heroes .hero{margin-bottom:0}
+.banlist{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));max-height:420px;overflow-y:auto}
+.banlist button{min-height:52px}
+.artroles{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px}
+.artroles button.selected{border-color:#c9a45a;color:#c9a45a}
+
+/* 0.39 召喚師技能：9 選 2 */
+.spell-options{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.spell-options button{width:100%}
+
+/* 0.40 職業賽季 */
+.pro-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pro-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.pro-tabs button.selected,.pro-roles button.selected{outline:2px solid #c9a45a;outline-offset:-2px}
+.pro-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
+.pro-table th,.pro-table td{padding:5px 6px;border-bottom:1px solid #e4e7ee;text-align:left}
+.pro-table small{color:#97a0ad;font-size:10px}
+.pro-table tr.mine td,.pro-series li.mine,.pro-history li.mine{background:#fff6dd;font-weight:700}
+.pro-series,.pro-history{list-style:none;padding:0;margin:0 0 10px}
+.pro-series li,.pro-history li{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:5px 6px;border-bottom:1px solid #eef0f4;font-size:13px}
+.pro-series li span{flex:1}.pro-series li span:last-of-type{text-align:right}
+.pro-board{display:grid;grid-template-columns:minmax(150px,1fr) minmax(0,2.4fr) minmax(150px,1fr);gap:12px;align-items:start}
+.pro-side{border:1px solid #e2e5ec;border-radius:14px;padding:10px;background:#f9fafc}
+.pro-side.blue{border-top:4px solid #5b8fd6}.pro-side.red{border-top:4px solid #d86d6d}.pro-side.mine{box-shadow:0 0 0 2px #c9a45a inset}
+.pro-slot{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #e4e7ee;font-size:13px}
+.pro-notes{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}.pro-notes span{font-size:11px;padding:2px 6px;border-radius:8px;background:#eef1f6}
+.pro-notes .good,.good{color:#2f8a4c}.pro-notes .bad,.bad{color:#c0483f}
+.pro-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:440px;overflow-y:auto;margin:8px 0}
+.pro-hero{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:8px}
+.pro-hero small{font-size:10px;color:#8a93a1}.pro-hero em{font-style:normal;font-size:11px}
+.pro-roles{display:flex;gap:6px;flex-wrap:wrap}
+.pro-log{font-size:12px;color:#6b7482;padding-left:18px}
+#proDraft{max-width:1180px;margin:0 auto;padding:16px}
+@media (max-width:760px){.pro-board{grid-template-columns:1fr}}
+
+.pro-event{border:1px solid #ecd9a8;background:#fffaf0;border-radius:14px;padding:12px;margin:10px 0}
+.pro-mid{font-size:10px;color:#a07b2e;min-width:52px}
+
+/* 0.42 生涯 */
+.pro-rival,.pro-news{border:1px solid #e2e5ec;border-radius:12px;padding:10px;margin:8px 0;background:#f9fafc}
+.pro-rival small,.pro-news small{display:block;color:#8a93a1;font-size:11px}
+.pro-offers{list-style:none;padding:0;margin:8px 0}
+.pro-offers li{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid #eef0f4}
+.pro-offers small{display:block;color:#8a93a1;font-size:11px}
+
+/* 0.43 成長與天梯 */
+.growth-courses{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px}
+.growth-card h3 small{font-size:12px;color:#8a93a1;font-weight:400;margin-left:6px}
+.growth-attrs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 14px;margin:8px 0}
+.growth-attrs div{display:grid;grid-template-columns:36px 1fr 28px;align-items:center;gap:6px;font-size:12px}
+.growth-attrs i,.ladder-bars i{display:block;height:6px;border-radius:4px;background:linear-gradient(90deg,#c9a45a var(--v),#eceff4 var(--v))}
+.growth-attrs b{text-align:right}
+.ladder-bars{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:12px;margin-bottom:6px}
+.ladder-bars span{display:flex;flex-direction:column;gap:4px}
+.hero em.tier{font-style:normal;font-size:11px;color:#a07b2e;margin-left:4px}
+.careerhead h2 span{font-size:14px;color:#8a93a1;font-weight:500;margin-left:8px}
+/* 0.44 出發國家：國旗按鈕＋聯賽名稱＋聯賽強度 */
+.country-pick{max-width:none}
+.country-pick>span{display:block;margin-bottom:8px}
+.country-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;max-width:760px}
+.country-grid button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 8px 10px;border:1px solid var(--line,#dfe3ea);border-radius:14px;background:var(--surface-raised,#f8f9fb);color:var(--text,#2d3441);cursor:pointer;text-align:center;min-width:0}
+.country-grid button:hover{border-color:#b7c5df}
+.country-grid button.sel{border-color:#c5a261;background:#fffbf2;box-shadow:0 0 0 2px #c5a26155;color:#2d3441}
+.country-grid button:focus-visible{outline:2px solid #526ba6;outline-offset:2px}
+.country-grid .flag{width:36px;height:24px;border-radius:3px;margin-bottom:3px}
+.country-grid b{font-size:15px;white-space:nowrap}
+.country-grid .cp-league{font-size:12px;font-weight:700;color:#526ba6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.country-grid .cp-power{display:block;width:80%;height:5px;border-radius:3px;background:#0001;overflow:hidden;margin:3px 0 1px}
+.country-grid .cp-power i{display:block;height:100%;background:linear-gradient(90deg,#69a68e,#c5a261)}
+.country-grid small{font-size:11px;color:#7e8795;line-height:1.4}
+.country-grid button.sel small{color:#7b6a4b}
+.country-grid .cp-team{font-size:10px;opacity:.85}
+@media (max-width:560px){.country-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.country-grid .cp-tier{color:#a67e35}
+.country-grid .cp-note{font-size:10.5px;color:#8a919c;margin:2px 0 1px}
+.mode-pick{max-width:none}
+.mode-pick>span{display:block;margin-bottom:8px}
+.mode-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-width:760px}
+.mode-grid button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:13px 16px;border:1px solid var(--line,#dfe3ea);border-radius:14px;background:var(--surface-raised,#f8f9fb);color:var(--text,#2d3441);cursor:pointer;text-align:left;min-width:0}
+.mode-grid button:hover{border-color:#b7c5df}
+.mode-grid button.sel{border-color:#c5a261;background:#fffbf2;box-shadow:0 0 0 2px #c5a26155;color:#2d3441}
+.mode-grid button:focus-visible{outline:2px solid #526ba6;outline-offset:2px}
+.mode-grid b{font-size:15px;display:flex;align-items:center;gap:8px}
+.mode-grid em{font-style:normal;font-size:10px;font-weight:700;color:#fff;background:#c5a261;border-radius:8px;padding:1px 7px}
+.mode-grid button[data-m=academy] em{background:#8a9ab5}
+.mode-grid small{font-size:11.5px;color:#7e8795;line-height:1.5}
+@media (max-width:560px){.mode-grid{grid-template-columns:1fr}}
+/* 0.48 本命／備用、天梯換路線、英雄榜 */
+.pool-hint{font-size:12px;margin:-6px 0 10px}
+.hero{position:relative}
+.backup-chip{position:absolute;right:12px;bottom:10px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px;border:1px solid #dfe3ea;background:#fff;color:#7e8795;cursor:pointer}
+.backup-chip:hover{border-color:#b7c5df;color:#526ba6}
+.backup-chip.on{background:#526ba6;border-color:#526ba6;color:#fff}
+.backup-chip.main{background:#c5a261;border-color:#c5a261;cursor:default}
+.hero.backup{border-color:#9bafd6;background:#f3f6fc}
+.ladder-role{margin:12px 0 4px}
+.ladder-role>span{display:block;font-size:13px;font-weight:700;color:#596579;margin-bottom:6px}
+.ladder-role small{font-weight:400;color:#949ca9;margin-left:6px}
+.ladder-role-btns{display:flex;flex-wrap:wrap;gap:6px}
+.ladder-role-btns button{padding:6px 12px;font-size:12px;border-radius:10px}
+.ladder-role-btns button.selected{background:#526ba6;border-color:#526ba6;color:#fff}
+#tierList{margin:22px 0 8px;padding-top:18px;border-top:1px solid #edf0f4}
+#tierList h2{margin:0;font-size:20px}
+.tl-sub{font-size:12px;font-weight:500;color:#9299a4;margin-left:6px}
+.tl-tabs{display:flex;gap:4px;padding:4px;background:#f0f2f6;border-radius:12px;margin:10px 0}
+.tl-tabs button{flex:1;padding:7px 2px;border:0;border-radius:9px;background:transparent;color:#7b8391;font-size:12px;font-weight:700;cursor:pointer;min-width:0}
+.tl-tabs button.sel{background:#fff;color:#526ba6;box-shadow:0 2px 5px #293a5712}
+.tl-table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+.tl-table th{font-size:11px;font-weight:600;color:#9aa2ae;text-align:right;padding:6px 4px;border-bottom:1px solid #e6e9ef}
+.tl-table th:nth-child(-n+3){text-align:left}
+.tl-table td{padding:7px 4px;border-bottom:1px solid #f0f2f6;text-align:right;color:#5f6b7d}
+.tl-table td:nth-child(-n+3){text-align:left}
+.tl-table td:first-child{color:#a0a7b4;width:22px}
+.tl-table tr[data-tlh]{cursor:pointer}
+.tl-table tr[data-tlh]:hover td{background:#f6f8fb}
+.tl-table tr.mine td{background:#fffbf2}
+.tl-name{font-weight:700;color:#2d3441!important;white-space:nowrap}
+.tl-name small{display:block;font-weight:400;font-size:10px;color:#a0a7b4}
+.tl-tier{display:inline-block;min-width:26px;text-align:center;border-radius:6px;padding:1px 5px;font-size:11px;color:#fff;background:#a0a7b4}
+.tl-tier.tOP{background:#c0504d}.tl-tier.t1{background:#d48a2e}.tl-tier.t2{background:#c5a261}.tl-tier.t3{background:#69a68e}.tl-tier.t4{background:#7d93b8}.tl-tier.t5{background:#a0a7b4}
+.tl-up{color:#3e8069;font-weight:700}.tl-down{color:#b26165;font-weight:700}.tl-same{color:#c0c5cd}
+@media (max-width:420px){.tl-table th:nth-child(6),.tl-table td:nth-child(6){display:none}.tl-tabs button{font-size:11px}}
+.patch-more>summary{cursor:pointer;font-size:12px;color:#526ba6;padding:10px 0;list-style:none}
+.patch-more>summary::-webkit-details-marker{display:none}
+.patch-more>summary::after{content:' ＋'}.patch-more[open]>summary::after{content:' −'}
+/* 0.51 英雄榜置頂、版本更新對話框、推薦召喚師技能、BP 選技能 */
+.meta-panel #tierList{margin:0 0 8px;padding-top:0;border-top:0}
+.tl-head{align-items:center;gap:10px;flex-wrap:wrap}
+#patchOpen{font-size:12px;padding:7px 12px;border-radius:10px;white-space:nowrap}
+#patchOpen.new{border-color:#c5a261;color:#9f793d;background:#fffbf2}
+.tl-patch{font-style:normal;font-weight:800;margin-left:4px}.tl-patch.up{color:#3e8069}.tl-patch.down{color:#b26165}
+#patchDialog .patchline{padding:11px 0}
+.rec-spells{display:block;font-size:11px;color:#526ba6;margin-top:3px}
+#bpSpells{margin:14px 0;border:1px solid #e1e5ed;border-radius:14px;padding:12px 14px;background:#f9fafc}
+#bpSpells>summary{cursor:pointer;font-size:14px;list-style:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#bpSpells>summary::-webkit-details-marker{display:none}
+#bpSpells>summary em{font-style:normal;font-size:10px;font-weight:700;color:#fff;background:#c5a261;border-radius:8px;padding:1px 7px}
+#bpSpells>summary small{color:#949ca9;font-size:11px;margin-left:auto}
+#bpSpells .spell-options{margin:10px 0}
+#bpSpells .spell-options button.rec{border-color:#c5a261}
+/* 0.53 天梯每週步驟 */
+.lstep{border:1px solid var(--line,#e1e5ed);border-radius:16px;padding:14px 16px;margin:14px 0;background:color-mix(in srgb,var(--surface-raised,#f8f9fb) 70%,transparent)}
+.lstep.wait{opacity:.55}
+.lstep.now{border-color:var(--life-gold,#c5a261);box-shadow:0 0 0 1px color-mix(in srgb,var(--life-gold,#c5a261) 40%,transparent)}
+.lstep-head{display:flex;align-items:center;gap:10px}
+.lstep-head b{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--life-gold,#c5a261);color:#1b1b1b;font-size:14px;flex:none}
+.lstep.wait .lstep-head b,.lstep.opt .lstep-head b{background:color-mix(in srgb,var(--muted,#8a919c) 45%,transparent);color:var(--text,#2d3441)}
+.lstep-head h3{margin:0;font-size:16px}
+.lstep-head small{margin-left:auto;font-size:11px;color:var(--muted,#8a919c)}
+.lstep.now .lstep-head small{color:var(--life-gold,#a67e35);font-weight:700}
+.lstep-tip{font-size:12px;color:var(--muted,#8a919c);margin:8px 0}
+.lstep .pro-event{margin:8px 0 0}
+.lacts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.lact{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:12px 14px;border-radius:14px;border:1px solid var(--line,#dfe3ea);background:var(--surface-raised,#fff);color:var(--text,#2d3441);cursor:pointer;min-width:0}
+.lact b{font-size:15px}.lact small{font-size:11.5px;color:var(--muted,#7e8795);line-height:1.5}
+.lact.primary{border-color:var(--life-gold,#c5a261);background:color-mix(in srgb,var(--life-gold,#c5a261) 14%,var(--surface-raised,#fff))}
+.lact.offer{grid-column:1/-1;border-color:var(--life-blue,#2d6a7f);background:color-mix(in srgb,var(--life-blue,#2d6a7f) 14%,var(--surface-raised,#fff))}
+.lact:disabled{cursor:not-allowed}
+.ladder-alert{border-radius:12px;padding:10px 14px;font-size:13px;font-weight:700;background:color-mix(in srgb,var(--life-blue,#2d6a7f) 16%,transparent);border:1px solid color-mix(in srgb,var(--life-blue,#2d6a7f) 45%,transparent);color:var(--text,#2d3441)}
+details.ladder-role>summary{cursor:pointer;font-size:13px;font-weight:700;list-style:none;padding:6px 0}
+details.ladder-role>summary::-webkit-details-marker{display:none}
+details.ladder-role .ladder-role-btns{margin:6px 0 4px}
+@media (max-width:560px){.lacts{grid-template-columns:1fr}}
+/* 0.53 BP 20 手進度條、逐步揭曉 */
+.bp-track{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));gap:3px;list-style:none;padding:0;margin:6px 0 4px}
+.bp-track li{height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;opacity:.35;border:1px solid transparent}
+.bp-track li.b{background:#3b6fb0;color:#fff}.bp-track li.r{background:#b4474a;color:#fff}
+.bp-track li.ban{filter:saturate(.45)}
+.bp-track li.done{opacity:.95}
+.bp-track li.cur{opacity:1;outline:2px solid var(--life-gold,#c5a261);outline-offset:1px;animation:bpPulse 1.2s ease-in-out infinite}
+@keyframes bpPulse{50%{transform:translateY(-2px)}}
+.bp-phase{font-size:12px;font-weight:700;color:var(--muted,#7e8795);margin:0 0 12px}
+.pro-log li.fresh{animation:bpIn .45s ease both}
+@keyframes bpIn{from{opacity:0;transform:translateX(-8px);background:color-mix(in srgb,var(--life-gold,#c5a261) 30%,transparent)}to{opacity:1;transform:none}}
+.pro-slot.you b{color:var(--life-gold,#a67e35)}
+@media (max-width:560px){.bp-track{grid-template-columns:repeat(10,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){.bp-track li.cur,.pro-log li.fresh{animation:none}}
+/* 0.55 直播轉播聊天室 */
+.live-chat{margin:12px 14px;border:1px solid var(--line,#e1e5ed);border-radius:16px;background:var(--surface,#fff);color:var(--text,#2d3441);overflow:hidden}
+.live-chat>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;padding:12px 16px;font-weight:800;font-size:14px}
+.live-chat>summary::-webkit-details-marker{display:none}
+.live-chat>summary small{margin-left:auto;font-weight:600;color:var(--muted,#7e8795);font-variant-numeric:tabular-nums}
+.lc-live{font-size:10px;font-weight:900;letter-spacing:.08em;color:#fff;background:#d13b3b;border-radius:5px;padding:2px 6px;animation:lcBlink 1.6s ease-in-out infinite}
+@keyframes lcBlink{50%{opacity:.55}}
+.lc-caster{padding:10px 16px;border-top:1px solid var(--line,#e1e5ed);border-bottom:1px solid var(--line,#e1e5ed);font-size:14px;min-height:22px;background:color-mix(in srgb,var(--life-gold,#c5a261) 10%,transparent)}
+.lc-caster b{color:var(--life-gold,#a67e35);margin-right:8px;font-size:12px}
+.lc-list{list-style:none;margin:0;padding:8px 16px 12px;height:180px;overflow-y:auto;font-size:13px;line-height:1.6}
+.lc-list li{padding:2px 0;animation:lcIn .25s ease both;word-break:break-word}
+.lc-list li b{font-weight:700;margin-right:4px}
+.lc-list li.lc-youKill,.lc-list li.lc-youMulti,.lc-list li.lc-baron,.lc-list li.lc-win{font-weight:700}
+.lc-list li.lc-youMulti{color:var(--life-gold,#a67e35)}
+.lc-list li.lc-youFeed{opacity:.92}
+@keyframes lcIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.lc-live,.lc-list li{animation:none}}
+/* 0.56 BP 確認鎖定 */
+.pro-hero.picked{outline:3px solid var(--life-gold,#c5a261);outline-offset:-1px;background:color-mix(in srgb,var(--life-gold,#c5a261) 16%,var(--surface-raised,#fff))}
+.bp-lock{position:sticky;bottom:72px;z-index:3;display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;margin:10px 0;padding:10px 12px;border-radius:14px;border:1px solid var(--life-gold,#c5a261);background:var(--surface,#fff);box-shadow:0 6px 18px #0003}
+.bp-lock span{font-size:13px;color:var(--muted,#7e8795)}.bp-lock b{color:var(--text,#2d3441);font-size:15px}
+.bp-lock button{min-width:150px}
+.bp-lock button:disabled{opacity:.45;cursor:not-allowed}
+/* 0.56 戰場右側轉播、上方加速 */
+.stage-row{display:flex;gap:12px;align-items:stretch}
+.stage-row>.broadcast-stage{flex:1 1 auto;min-width:0}
+.stage-row>.live-chat{flex:0 0 300px;margin:0 12px 0 0;display:flex;flex-direction:column;max-height:none}
+.stage-row>.live-chat[open]{min-height:0}
+.stage-row>.live-chat .lc-list{flex:1 1 0;height:0;min-height:0;max-height:none;overflow-y:auto}
+.speed-tools{display:flex;gap:6px;margin-left:auto}
+.speed-tools button{font-weight:800;min-width:64px}
+@media (min-width:1180px){main:has(> #match:not([hidden])){max-width:1400px}}
+@media (max-width:1100px){.stage-row{flex-direction:column}.stage-row>.live-chat{flex:none;margin:12px}.stage-row>.live-chat .lc-list{height:180px;min-height:0}}
+#recallBtn.on{border-color:#7fd3ff;color:#7fd3ff;box-shadow:0 0 0 2px #7fd3ff33}
+/* 0.57 選手看板（雷達圖） */
+body.has-board .life-meters,body.has-board .growth-card{display:none!important}
+.player-board{border:1px solid var(--line,#e1e5ed);border-radius:18px;background:var(--surface,#fff);color:var(--text,#2d3441);padding:14px 16px}
+.pb-head{display:flex;align-items:center;gap:12px}
+.pb-ovr{display:flex;flex-direction:column;align-items:center;line-height:1}
+.pb-ovr b{font-size:30px;font-weight:900;color:var(--life-gold,#b8893a)}.pb-ovr small{font-size:10px;color:var(--muted,#7e8795);margin-top:3px}
+.pb-id{min-width:0;flex:1}.pb-id strong{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pb-id small{font-size:11px;color:var(--muted,#7e8795)}
+.pb-toggle{font-size:12px;padding:6px 12px;border-radius:10px;white-space:nowrap}
+.pb-quick{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:4px 14px;margin-top:10px}
+.pb-meter{display:grid;grid-template-columns:56px 1fr 26px;align-items:center;gap:6px;font-size:12px}
+.pb-meter span{color:var(--muted,#7e8795);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pb-meter i{display:block;height:6px;border-radius:4px;background:linear-gradient(90deg,var(--life-blue,#2d6a7f) var(--v),color-mix(in srgb,var(--muted,#7e8795) 22%,transparent) var(--v))}
+.pb-meter.key i{background:linear-gradient(90deg,var(--life-gold,#b8893a) var(--v),color-mix(in srgb,var(--muted,#7e8795) 22%,transparent) var(--v))}
+.pb-meter.key span{color:var(--life-gold,#a67e35);font-weight:700}
+.pb-meter.low i{background:linear-gradient(90deg,#d0605a var(--v),color-mix(in srgb,var(--muted,#7e8795) 22%,transparent) var(--v))}
+.pb-meter b{text-align:right;font-variant-numeric:tabular-nums}
+.pb-more{display:none;margin-top:10px}
+.player-board.full .pb-more{display:block}
+.player-board .radar{display:block;width:100%;max-width:240px;margin:0 auto 6px}
+.radar .rg{fill:none;stroke:color-mix(in srgb,var(--muted,#7e8795) 35%,transparent);stroke-width:1}
+.radar .ra{stroke:color-mix(in srgb,var(--muted,#7e8795) 22%,transparent);stroke-width:1}
+.radar .rp{fill:none;stroke:var(--text,#2d3441);stroke-opacity:.45;stroke-dasharray:3 3}
+.radar .rv{fill:color-mix(in srgb,var(--life-gold,#b8893a) 26%,transparent);stroke:var(--life-gold,#b8893a);stroke-width:2;stroke-linejoin:round}
+.radar text{font:500 10px sans-serif;text-anchor:middle;dominant-baseline:middle;fill:var(--muted,#7e8795)}
+.radar text.rk{fill:var(--life-gold,#b8893a);font-weight:800}
+.pb-attrs{display:grid;gap:4px}
+.pb-sub{margin-top:10px;display:grid;gap:4px}.pb-sub h4{margin:0 0 2px;font-size:12px;color:var(--muted,#7e8795)}
+.pb-note{font-size:11px;color:var(--muted,#7e8795);margin:8px 0 0}
+/* 桌機：左側固定欄（比賽、BP 畫面隱藏） */
+@media (min-width:1180px){
+ body.has-board main:not(:has(> #match:not([hidden]))):not(:has(> #draft:not([hidden]))):not(:has(> #proDraft:not([hidden]))){max-width:1380px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:22px;align-items:start}
+ body.has-board main:not(:has(> #match:not([hidden]))):not(:has(> #draft:not([hidden]))):not(:has(> #proDraft:not([hidden])))>*{grid-column:2}
+ body.has-board main>#playerBoard{grid-column:1!important;grid-row:1/span 30;position:sticky;top:14px;max-height:calc(100dvh - 28px);overflow-y:auto}
+ body.has-board main:has(> #match:not([hidden]))>#playerBoard,body.has-board main:has(> #draft:not([hidden]))>#playerBoard,body.has-board main:has(> #proDraft:not([hidden]))>#playerBoard{display:none}
+ .player-board .pb-toggle{display:none}
+}
+/* 手機：放在頂部看板裡，展開時可捲動 */
+@media (max-width:1179px){
+ header.life-header>.player-board{margin-top:10px;padding:10px 12px;border-radius:14px}
+ header.life-header>.player-board .pb-head .pb-id{display:none}
+ header.life-header>.player-board.full{max-height:62dvh;overflow-y:auto}
+ header.life-header>.player-board .pb-quick{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:1179px){header.life-header>.player-board .pb-ovr{display:none}header.life-header>.player-board .pb-head{justify-content:flex-end;margin-bottom:-4px}header.life-header>.player-board .pb-head{position:absolute;right:12px;top:8px}header.life-header>.player-board{position:relative;padding-top:12px}header.life-header>.player-board .pb-quick{margin-top:0;padding-right:84px}}
+#lifeRestart.warn{background:#b8433a;color:#fff;border-color:#b8433a}
+/* 0.60 天賦種子與特殊能力 */
+.talent-field .seed-row{display:flex;gap:8px;margin:4px 0}
+.talent-field #seedInput{flex:1;min-width:0;font:600 15px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase}
+.talent-field .seed-hint{opacity:.7;font-size:12px}
+.tl-report{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;padding:10px;border-radius:10px;background:rgba(127,127,127,.1);margin:4px 0}
+.tl-report>b{grid-row:span 2;font-size:15px;padding:6px 10px;border-radius:8px}
+.tl-report span{font-size:13px}.tl-report small{font-size:12px;opacity:.8}
+.tier-S{background:linear-gradient(135deg,#f6d365,#e09b2d);color:#3a2500}
+.tier-A{background:#b4469b;color:#fff}.tier-B{background:#3c80a7;color:#fff}.tier-C{background:#7d8790;color:#fff}
+.pb-talent h4 b{display:inline-block;padding:0 6px;border-radius:5px;font-size:12px}
+.pb-talent h4 small{font-weight:400;opacity:.7;font-size:11px}
+.ab-list{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0}
+.ab{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid;cursor:help;white-space:nowrap}
+.ab-gold{background:linear-gradient(135deg,#ffe28a,#e0a630);border-color:#c78d1b;color:#3a2500;font-weight:700}
+.ab-blue{background:#e2eefa;border-color:#7aa6d6;color:#1d4a78}
+.ab-green{background:#e3f4e6;border-color:#7cbf8a;color:#225c31}
+.ab-red{background:#fbe5e3;border-color:#e09189;color:#8a2a22}
+.ab.off{opacity:.45;text-decoration:line-through}
+body[data-theme=rift] .ab-blue,body[data-theme=t1] .ab-blue,body[data-theme=geng] .ab-blue,body[data-theme=g2] .ab-blue{background:#16324a;color:#a9d0f5;border-color:#3d6f9c}
+body[data-theme=rift] .ab-green,body[data-theme=t1] .ab-green,body[data-theme=geng] .ab-green,body[data-theme=g2] .ab-green{background:#173a26;color:#9fe0b0;border-color:#3f8a57}
+body[data-theme=rift] .ab-red,body[data-theme=t1] .ab-red,body[data-theme=geng] .ab-red,body[data-theme=g2] .ab-red{background:#45201d;color:#f4aaa2;border-color:#9a4a42}
+/* 0.61 天賦第二步 */
+.ab-hidden{background:repeating-linear-gradient(135deg,rgba(127,127,127,.15) 0 6px,rgba(127,127,127,.28) 6px 12px);border-color:rgba(127,127,127,.5);color:inherit;letter-spacing:.1em}
+.ab small{font-size:10px;opacity:.8}
+#spWrap{margin-top:10px}
+.sp-box{border:1px solid rgba(127,127,127,.3);border-radius:12px;padding:10px 12px}
+.sp-box summary{cursor:pointer;font-weight:700}.sp-box summary small,.sp-box h4 small{font-weight:400;opacity:.7;font-size:12px}
+.sp-box h4{margin:0 0 6px}
+.sp-opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sp-opts button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:6px 8px}
+.sp-opts small{font-size:11px;opacity:.75}
+.sp-target{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sp-target small{opacity:.8;font-size:12px}
+.sp-bar{position:relative;height:18px;border-radius:9px;background:rgba(127,127,127,.2);margin:8px 0;overflow:hidden}
+.sp-bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#3c80a7,#d2a24c)}
+.sp-bar span{position:relative;display:block;text-align:center;font-size:12px;line-height:18px;font-weight:700}
+.sp-acts{display:flex;gap:8px}
+.talent-toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;pointer-events:none;width:min(420px,calc(100vw - 32px))}
+.talent-toast p{margin:0;padding:10px 14px;border-radius:12px;background:#10201f;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:14px;animation:tt-in .3s ease}
+@keyframes tt-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.talent-event .storychoice small{display:block;opacity:.75;font-size:12px}
+/* 0.63 BP 對手天賦 */
+.foe-talent{border:1px solid rgba(127,127,127,.3);border-radius:12px;padding:8px 12px;margin:0 0 10px}
+.foe-talent summary{cursor:pointer;font-weight:700}.foe-talent summary small{font-weight:400;opacity:.75;margin-left:6px}
+.foe-rows{display:grid;gap:6px;margin-top:8px}
+.foe-row{display:grid;grid-template-columns:40px minmax(70px,140px) 28px 1fr;gap:8px;align-items:center;font-size:13px}
+.foe-role{opacity:.7;font-size:12px}.foe-name small{opacity:.6;font-weight:400}
+.foe-tier{text-align:center;border-radius:6px;font-size:12px;padding:1px 0}
+.foe-row .ab-list{margin:0}
+@media (max-width:640px){.foe-row{grid-template-columns:34px 1fr 26px}.foe-row .ab-list{grid-column:1/-1}}
+/* 0.64 像素立繪頭像 */
+canvas.hp-ava{image-rendering:pixelated;image-rendering:crisp-edges;flex:none}
+.hp-slot{display:inline-grid;place-items:end center;overflow:hidden}
+.hp-slot canvas.hp-ava{width:30px;height:40px}
+[data-pick]:has(>canvas.hp-ava),[data-ban]:has(>canvas.hp-ava),[data-dhero]:has(>canvas.hp-ava),[data-hero]:has(>canvas.hp-ava){position:relative;padding-right:46px!important}
+[data-hero]>canvas.hp-ava,[data-pick]>canvas.hp-ava,[data-ban]>canvas.hp-ava,[data-dhero]>canvas.hp-ava{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:30px;height:40px;margin:0;pointer-events:none}
+.tl-name:has(>canvas.hp-sm),td:has(>canvas.hp-sm){position:relative;padding-left:34px!important}
+canvas.hp-ava.hp-sm{position:absolute;left:4px;top:50%;transform:translateY(-50%);width:24px;height:32px;pointer-events:none}
+.hp-slot{background:rgba(127,127,127,.12)!important}
+.pb-head canvas.hp-main{width:36px;height:48px;align-self:end}
+.cast-champion canvas,#castPortrait,canvas[data-gear-portrait]{image-rendering:pixelated}
+/* 0.67 戰場角色風格切換 */
+.field-style{margin-top:14px}.field-style h3{font-size:14px;margin:0 0 8px}
+.field-style-opts{display:flex;gap:8px}.field-style-opts button{flex:1}
+.field-style-opts button.on{outline:2px solid var(--accent,#2f8f83);font-weight:700}
+/* 0.73 訓練分頁 */
+.train-tabs{display:flex;gap:6px;align-items:center;margin:0 0 10px;flex-wrap:wrap}
+.train-tabs button{border-radius:999px;padding:6px 14px;font-size:13px}
+.train-tabs button.on{background:var(--accent,#2f8f83)!important;border-color:var(--accent,#2f8f83)!important;color:#fff!important}
+.train-tabs .tt-left{margin-left:auto;font-size:12px;opacity:.8}.train-tabs .tt-left b{color:var(--gold,#d2a24c)}
+.tp-hint{font-size:12px;opacity:.8;margin:0 0 8px}.tp-hint b{color:#e0646a}
+.tp-heroes{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:6px}
+.tp-hero{display:flex;gap:6px;align-items:center;text-align:left;padding:4px 6px;border-radius:10px;min-height:0}
+.tp-hero.pinned{border-color:var(--gold,#d2a24c)}
+.tp-hero canvas{width:30px;height:40px;image-rendering:pixelated;flex:none}
+.tp-hero span{display:grid;gap:2px;min-width:0;flex:1}
+.tp-hero strong{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-hero em{font-style:normal;font-size:10px;color:var(--gold,#d2a24c);font-weight:700}
+.tp-hero small{font-size:11px;opacity:.75}
+.tp-hero i{display:block;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--accent,#2f8f83) var(--m),rgba(127,127,127,.25) var(--m))}
+.tp-legacy{display:none!important}
+@media (max-width:640px){.tp-heroes{grid-template-columns:repeat(2,1fr)}}
+.growth-courses[hidden],#tpHeroes[hidden],#spWrap[hidden]{display:none!important}
+
+/* 0.79 戰術方針移到戰場正下方，看戰場時就能調整 */
+.arena>.tactics{margin:10px 14px 4px;padding:8px 14px}
+.arena>.tactics>summary{font-size:13px;font-weight:800}
+.arena>.tactics[open]{display:block}
+@media (min-width:900px){.arena>.tactics[open] .tactic-row{display:inline-flex;align-items:center;gap:6px;margin:6px 18px 2px 0}.arena>.tactics .tactic-row>span{font-size:12px;color:var(--muted,#8d97a6)}}
+.arena>.tactics .tactic-row button{padding:5px 10px;font-size:12px}
+/* 0.80 先發競爭與練習賽 */
+.pro-squad,.pro-scrim{border:1px solid #e2e5ec;border-radius:12px;padding:10px;margin:8px 0;background:#f9fafc}
+.pro-squad small,.pro-scrim small{display:block;color:#69728a;font-size:12px;margin-top:4px}
+.sq-row{display:grid;grid-template-columns:minmax(0,7em) 1fr 3em;align-items:center;gap:8px;margin:4px 0;font-size:13px}
+.sq-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sq-row i{height:8px;border-radius:4px;background:#e4e7ee;position:relative;overflow:hidden}
+.sq-row i::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--w);background:#3d7be0;border-radius:4px}
+.sq-row.sub i::after{background:#d68a2c}.sq-row b{text-align:right}
+.pro-scrim .storychoice{margin-top:6px}
+body[data-theme]:not([data-theme=classic]) :is(.pro-squad,.pro-scrim){background:var(--surface-raised);border-color:var(--line);color:var(--text)}
+body[data-theme]:not([data-theme=classic]) :is(.pro-squad small,.pro-scrim small){color:var(--muted)}
+body[data-theme]:not([data-theme=classic]) .sq-row i{background:var(--line)}
+.pro-hero em.foe{display:block;color:#c26a12}.pro-hero em.foe.sig{font-weight:700}
+body[data-theme]:not([data-theme=classic]) .pro-hero em.foe{color:#f0a85a}
+/* 0.81 快轉結果、訓練計畫、關鍵系列賽 */
+.pro-ff{border:1px solid #e2e5ec;border-radius:12px;padding:10px;margin:8px 0;background:#f9fafc;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.pro-ff small{color:#69728a;font-size:12px}.pro-ff ul{margin:4px 0 0;padding-left:18px;font-size:12px;max-height:180px;overflow:auto}.pro-ff details{width:100%}
+.pro-plan{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0 4px;font-size:13px}.pro-plan span{color:#69728a;margin-right:2px}
+.pro-plan button{padding:4px 12px;border-radius:999px;font-size:12px;min-height:30px}.pro-plan button.on{background:#2e8f84;color:#fff;border-color:#2e8f84}
+.key-tag{color:#c26a12}
+#skipBtn.on,#slowBtn.on{border-color:#2e8f84}
+body[data-theme]:not([data-theme=classic]) .pro-ff{background:var(--surface-raised);border-color:var(--line);color:var(--text)}
+body[data-theme]:not([data-theme=classic]) :is(.pro-ff small,.pro-plan span){color:var(--muted)}
+body[data-theme]:not([data-theme=classic]) .key-tag{color:#f0a85a}
+/* 0.82 成就與稱號 */
+.ach-toast{position:fixed;top:14px;right:14px;z-index:9999;background:#1d2738;color:#fff;border:1px solid #f1c66d;border-radius:12px;padding:10px 16px;box-shadow:0 8px 24px #0006;transform:translateY(-120%);opacity:0;transition:.3s;max-width:calc(100vw - 28px)}
+.ach-toast.on{transform:none;opacity:1}.ach-toast small{display:block;color:#f1c66d;font-size:11px}.ach-toast b{font-size:15px}
+.ach-dialog{max-width:860px;width:calc(100vw - 32px)}.ach-dialog h2 small{font-size:13px;color:#8f9bb0;margin-left:6px}
+.ach-cat{margin:14px 0 6px;font-size:14px}
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.ach-row{display:flex;gap:8px;align-items:flex-start;justify-content:space-between;border:1px solid #e2e5ec;border-left-width:4px;border-radius:10px;padding:8px 10px;background:#f9fafc}
+.ach-row div{min-width:0}.ach-row b{display:block;font-size:14px}.ach-row small{display:block;font-size:12px;color:#69728a}.ach-row em{font-style:normal;font-size:11px;color:#8a93a1}
+.ach-row button{flex:none;font-size:11px;padding:3px 8px;min-height:28px}
+.ach-row.r-c{border-left-color:#9aa6b8}.ach-row.r-r{border-left-color:#3d7be0}.ach-row.r-e{border-left-color:#9656d4}.ach-row.r-l{border-left-color:#e0a21c}
+.ach-row.locked{opacity:.55}.ach-row.locked b{color:#8a93a1}
+.life-title{display:inline-block;font-style:normal;font-size:11px;font-weight:700;color:#b5821a;border:1px solid #e0b85a;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:middle;white-space:nowrap}
+body[data-theme]:not([data-theme=classic]) .ach-row{background:var(--surface-raised);border-color:var(--line);color:var(--text)}
+body[data-theme]:not([data-theme=classic]) .ach-row.r-c{border-left-color:#9aa6b8}body[data-theme]:not([data-theme=classic]) .ach-row.r-r{border-left-color:#5a9bff}body[data-theme]:not([data-theme=classic]) .ach-row.r-e{border-left-color:#b27cf0}body[data-theme]:not([data-theme=classic]) .ach-row.r-l{border-left-color:#f1c66d}
+body[data-theme]:not([data-theme=classic]) :is(.ach-row small,.ach-row em){color:var(--muted)}
+body[data-theme]:not([data-theme=classic]) .life-title{color:#f1c66d;border-color:#f1c66d88}
+
+#lifeAch .ach-ico{margin-right:3px}
+
+.ach-ending{margin:12px 0}.ach-ending .ach-grid{margin-top:6px}
+
+/* 0.82 手機頁首：按鈕列移到名字下方一整行，名字與稱號不再被擠成「無…」 */
+@media (max-width:600px){header.life-header .life-top{flex-wrap:wrap;row-gap:6px}
+ header.life-header .life-nav{order:3;flex:1 0 100%;justify-content:flex-start;overflow-x:auto;scrollbar-width:none}
+ header.life-header .life-nav button{padding:6px 10px;min-height:32px;font-size:12px;flex:none}
+ .life-identity .life-title{font-size:10px;padding:0 6px}}
+/* BP 欄位的選手名字 */
+.pro-slot .slot-pl{display:block;font-size:11px;color:#69728a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pro-slot .slot-pl.you{color:#b5821a;font-weight:700}
+body[data-theme]:not([data-theme=classic]) .pro-slot .slot-pl{color:var(--muted)}body[data-theme]:not([data-theme=classic]) .pro-slot .slot-pl.you{color:#f1c66d}
+/* 球探邀約卡 */
+.offer-card{border:1px solid #e2e5ec;border-radius:12px;padding:10px 12px;margin:0 0 8px;background:#f9fafc;display:flex;flex-direction:column;gap:6px;grid-column:1/-1}
+.offer-card .oc-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.offer-card .oc-head b{font-size:16px}
+.offer-card small{color:#69728a;font-size:12px}
+.oc-str{font-size:11px;font-weight:800;border-radius:999px;padding:2px 9px;white-space:nowrap;background:#e8ebf1;color:#58607a}.oc-str.s3{background:#f6e3b4;color:#8a5a00}.oc-str.s2{background:#dfe8fb;color:#2b56a8}.oc-str.s1{background:#e3f1ea;color:#2f7a52}
+.oc-terms{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0}.oc-terms div{background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:5px 7px;min-width:0}
+.oc-terms dt{font-size:11px;color:#8a93a1}.oc-terms dd{margin:0;font-weight:800;font-size:13px}.oc-terms .lv-高{color:#2f8a4c}.oc-terms .lv-中{color:#b5821a}.oc-terms .lv-低{color:#c0483f}
+@media (max-width:600px){.oc-terms{grid-template-columns:repeat(2,minmax(0,1fr))}}
+body[data-theme]:not([data-theme=classic]) .offer-card{background:var(--surface-raised);border-color:var(--line);color:var(--text)}
+body[data-theme]:not([data-theme=classic]) .oc-terms div{background:color-mix(in srgb,var(--surface-raised) 70%,#000);border-color:var(--line)}
+body[data-theme]:not([data-theme=classic]) :is(.offer-card small,.oc-terms dt){color:var(--muted)}
+body[data-theme]:not([data-theme=classic]) .oc-terms .lv-高{color:#6fcf9f}body[data-theme]:not([data-theme=classic]) .oc-terms .lv-中{color:#f1c66d}body[data-theme]:not([data-theme=classic]) .oc-terms .lv-低{color:#ef8d8d}
+/* 0.85 PWA 與贊助入口 */
+.kofi-a{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:13px;color:#4a3a10;text-decoration:none;padding:7px 13px;border-radius:999px;border:1px solid #e0b85a;background:#fbf1d6}
+.kofi-a:hover{background:#f7e6b6}.kofi-a:focus-visible{outline:2px solid #e0b85a;outline-offset:2px}
+#kofiHome{position:fixed;left:calc(10px + env(safe-area-inset-left,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:40;font-size:12px;padding:6px 11px;opacity:.92}
+#kofiHome[hidden]{display:none}
+.kofi-end{margin-top:10px}
+.foot-links .linkish{background:none;border:0;padding:0;min-height:0;font:inherit;color:inherit;text-decoration:underline;cursor:pointer;margin-right:8px}
+.foot-links .linkish[hidden]{display:none}
+.pwa-welcome{margin-top:8px}
+.pwa-dialog{max-width:460px;width:calc(100vw - 32px)}
+.pwa-why{margin:4px 0 10px}.pwa-go{width:100%;margin:4px 0}.pwa-who{font-size:13px;color:#69728a;margin:8px 0 4px}
+.pwa-steps{padding-left:1.3em;line-height:1.9}.pwa-steps b{color:#b5821a}.pwa-ic{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border:1px solid currentColor;border-radius:5px;font-size:12px;vertical-align:middle;padding:0 3px}
+.pwa-copy{margin-top:8px;font-size:13px}
+body[data-theme]:not([data-theme=classic]) .kofi-a{color:#ffe6a6;background:color-mix(in srgb,#f1c66d 14%,var(--surface-raised,#1c2540));border-color:color-mix(in srgb,#f1c66d 55%,transparent)}
+body[data-theme]:not([data-theme=classic]) .pwa-who{color:var(--muted)}body[data-theme]:not([data-theme=classic]) .pwa-steps b{color:#f1c66d}
+@media (max-width:600px){#kofiHome{font-size:11px;padding:5px 9px}}
+
+/* 0.86 BP 禁用列與頭像 */
+.bp-bans{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:4px 0 8px}
+.bp-ban{margin:0;text-align:center;min-width:0}
+.bp-ban figcaption{font-size:11px;line-height:1.25;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#b8424a;font-weight:700}
+.bp-ban.wait figcaption,.bp-ban.none figcaption{color:#9aa2b4;font-weight:400}
+.bp-face{position:relative;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;background:#1d2438;overflow:hidden;flex:none}
+.bp-face img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
+.bp-face.empty{background:repeating-linear-gradient(135deg,#e3e7ef 0 6px,#eef1f6 6px 12px)}
+.bp-ban .bp-face{width:100%;max-width:46px;aspect-ratio:1;height:auto}
+.bp-ban:not(.wait):not(.none) .bp-face img{filter:grayscale(1) brightness(.75)}
+.bp-ban:not(.wait):not(.none) .bp-face::after{content:'';position:absolute;inset:0;background:linear-gradient(to top right,transparent calc(50% - 1.5px),#e5484d calc(50% - 1.5px),#e5484d calc(50% + 1.5px),transparent calc(50% + 1.5px))}
+.pro-slot{align-items:center;gap:6px}.pro-slot .bp-face.pick{width:30px;height:30px;border-radius:6px;margin-left:auto}
+.pro-slot>b{min-width:4.5em;text-align:right}
+body[data-theme]:not([data-theme=classic]) .bp-face.empty{background:repeating-linear-gradient(135deg,#1a2133 0 6px,#20283c 6px 12px)}
+body[data-theme]:not([data-theme=classic]) .bp-ban figcaption{color:#ff8a8f}
+body[data-theme]:not([data-theme=classic]) .bp-ban.wait figcaption{color:var(--muted)}
+.bp-ban figcaption{white-space:normal;word-break:break-all;font-size:10.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:2.5em}
+.pro-slot>small{white-space:nowrap;flex:none}

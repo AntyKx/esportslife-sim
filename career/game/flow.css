@@ -1,0 +1,93 @@
+/* 0.87 流程整理：青訓週安排步驟化、底部行動列為唯一主按鈕 */
+.flow-step{display:flex;align-items:center;gap:10px;margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--line,#e1e5ed)}
+.careergrid>article.panel>.flow-step:first-of-type{border-top:0;padding-top:0;margin-top:6px}
+.flow-step b{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--life-gold,#c5a261);color:#1b1b1b;font-size:14px;flex:none}
+.flow-step h3{margin:0!important;font-size:16px}
+.flow-step small{margin-left:auto;font-size:11px;color:var(--muted,#8a919c)}
+.flow-step.now small{color:var(--life-gold,#a67e35);font-weight:700}
+.flow-step.done b{background:#3f9b6e;color:#fff}
+.flow-step.wait b,.flow-step.opt b{background:color-mix(in srgb,var(--muted,#8a919c) 45%,transparent);color:var(--text,#2d3441)}
+.flow-step.wait,.flow-step.wait~#trainTabs,.flow-step.wait~.courses{opacity:.55}
+.flow-step.flash{animation:flowFlash 1.2s ease 2}
+@keyframes flowFlash{50%{background:color-mix(in srgb,var(--life-gold,#c5a261) 25%,transparent);border-radius:10px}}
+.flow-go{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between}
+.flow-go p{margin:0;font-size:14px}
+.flow-go small{color:var(--muted,#8a919c);font-size:12px}
+/* 青訓週安排：重複的入口與跳轉連結收掉；英雄池／英雄榜／出裝預設收合 */
+body.flow-camp #start,body.flow-camp .traininglink{display:none!important}
+body.flow-camp:not(.flow-prep-open) #weeklyTraining{display:none!important}
+body.flow-camp #weeklyTraining #roles,body.flow-camp #weeklyTraining article>h2:first-child{display:none}
+/* 底部行動列：提示文字在手機也顯示，次要按鈕 */
+.action-dock .dock-alt{background:transparent!important;color:var(--muted,#737c8c)!important;border:1px solid currentColor!important;font-size:14px!important;padding:12px 16px!important}
+@media (max-width:640px){
+ .action-dock{flex-wrap:wrap;row-gap:6px;padding-top:8px!important}
+ .action-dock span{display:block!important;flex-basis:100%;text-align:center;font-size:12px}
+ .action-dock .dock-main{flex:1 1 0!important;width:auto!important;min-width:0;padding:13px 12px!important}
+ .action-dock .dock-alt{flex:0 0 auto!important;width:auto!important;padding:12px 10px!important;font-size:13px!important}
+ body.has-action-dock #kofiHome{display:none!important}
+}
+/* 練完的訓練收起來 */
+.flow-step.done.flow-train~#trainTabs,.flow-step.done.flow-train~.courses{display:none!important}
+/* BP：確認改由底部行動列，頁內確認列收掉（只限青訓 BP） */
+body.flow-bp.has-action-dock .bp-lock{display:none!important}
+body.flow-bp.has-action-dock #draft #lockDraft{display:none!important}
+/* 0.88 平凡人生結局卡 */
+.ending-card .ending-path{display:inline-block;margin:0 0 10px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;background:color-mix(in srgb,var(--muted,#8a919c) 22%,transparent)}
+.ending-card>p:not(.ending-path):not(.muted){font-size:15px;line-height:1.85}
+.ending-stats{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.ending-stats span{display:flex;flex-direction:column;gap:2px;padding:8px 12px;border:1px solid var(--line,#e1e5ed);border-radius:12px;font-size:11px;color:var(--muted,#8a919c);min-width:84px}
+.ending-stats b{font-size:16px;color:var(--text,#2d3441)}
+.ladder-alert.warn{background:color-mix(in srgb,#d9822b 18%,transparent);border-color:color-mix(in srgb,#d9822b 50%,transparent)}
+body.life-ended .action-dock{display:none!important}
+/* 0.88 結局分享卡 */
+.share-dialog{width:min(560px,94vw)}
+.share-seg,.ep-seg{display:flex;gap:8px;margin:6px 0 12px}
+.share-seg button.sel,.ep-seg button.sel{outline:2px solid var(--life-gold,#c5a261)}
+.share-img{display:flex;justify-content:center;background:#0004;border-radius:14px;padding:10px}
+.share-img img{max-width:100%;max-height:58vh;border-radius:10px;box-shadow:0 8px 30px #0006}
+.share-act{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.share-act .primary{flex:1}
+#endingShare{margin:0 8px 10px 0}
+.ending-preview{padding:20px;background:#0b0f18;color:#fff}
+.ending-preview h2{margin:0 0 10px}
+.ep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.ep-grid img{width:100%;border-radius:12px;box-shadow:0 6px 24px #0008}
+/* 0.89 生涯分揭曉：分數往上跑、等級梯亮起、蓋章 */
+.cs-reveal{margin:14px 0;padding:14px 16px;border-radius:14px;background:color-mix(in srgb,var(--life-gold,#c5a261) 8%,transparent);border:1px solid color-mix(in srgb,var(--life-gold,#c5a261) 35%,transparent);cursor:pointer}
+.cs-l{font-size:12px;color:var(--muted,#7e8795);font-weight:700;letter-spacing:.1em}
+.cs-n{font-size:44px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--life-gold,#a67e35)}
+.cs-lad{display:grid;gap:5px;margin:10px 0}
+.cs-r{display:grid;grid-template-columns:5.2em 1fr 3.4em;align-items:center;gap:8px;font-size:13px;opacity:.5;transition:opacity .2s}
+.cs-r.lit{opacity:.85}.cs-r.me{opacity:1}.cs-r.me b{color:var(--life-gold,#a67e35)}
+.cs-r i{height:8px;border-radius:4px;background:color-mix(in srgb,currentColor 14%,transparent);overflow:hidden}
+.cs-r em{display:block;height:100%;width:0;background:var(--life-gold,#c5a261)}
+.cs-r span{text-align:right;font-size:11px;color:var(--muted,#7e8795);font-variant-numeric:tabular-nums}
+.cs-r.ord{border-top:1px dashed color-mix(in srgb,currentColor 25%,transparent);padding-top:5px}
+.cs-res{display:flex;align-items:center;gap:14px;min-height:0}
+.cs-stamp{flex:none;border:3px solid var(--c);color:var(--c);border-radius:50%;width:84px;height:84px;display:grid;place-items:center;font-weight:900;font-size:17px;transform:rotate(-12deg);background:#0004;text-align:center;line-height:1.1;animation:csStamp .35s ease-out}
+@keyframes csStamp{from{transform:rotate(-12deg) scale(1.8);opacity:0}to{transform:rotate(-12deg) scale(1);opacity:1}}
+.cs-gap{font-size:13px;flex:1}.cs-gap b{color:var(--life-gold,#a67e35)}
+.cs-bar{height:6px;border-radius:3px;background:#8883;margin-top:6px;overflow:hidden}.cs-bar i{display:block;height:100%;background:var(--life-gold,#c5a261)}
+.cs-parts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.cs-parts span{font-size:11px;padding:3px 8px;border-radius:999px;background:#8881;color:var(--muted,#7e8795)}.cs-parts b{margin-left:4px;color:inherit;font-weight:800}
+@media (prefers-reduced-motion:reduce){.cs-stamp{animation:none}}
+/* 0.90 開局選手造型 */
+.pl-editor{margin:14px 0;padding:12px;border-radius:14px;border:1px solid var(--line,#e1e5ed);background:color-mix(in srgb,var(--life-gold,#c5a261) 6%,transparent);max-width:680px}
+.pl-head{display:flex;gap:14px;align-items:center}
+.pl-head img.pl-big{width:72px;height:96px;image-rendering:pixelated;flex:none;background:#0002;border-radius:12px;padding:4px}
+.pl-head b{display:block;font-size:15px}.pl-head small{display:block;color:var(--muted,#7e8795);font-size:12px;margin-top:2px}
+.pl-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.pl-acts button{padding:5px 10px;font-size:13px}
+.pl-body{margin-top:10px;display:grid;gap:10px}
+.pl-row h4{margin:0 0 5px;font-size:13px}.pl-row h4 small{margin-left:8px;font-weight:500;color:var(--muted,#7e8795);font-size:11px}
+.pl-strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.pl-chip{flex:none;padding:5px 11px;border-radius:999px;font-size:13px;border:1px solid var(--line,#ccd);background:transparent;color:inherit;cursor:pointer}
+.pl-chip[aria-pressed="true"],.pl-opt[aria-pressed="true"]{border-color:var(--life-gold,#c5a261);background:color-mix(in srgb,var(--life-gold,#c5a261) 22%,transparent);font-weight:700}
+.pl-sw{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid #0003;cursor:pointer;padding:0;font-size:10px;color:inherit;background:transparent}
+.pl-sw.none{border-style:dashed}
+.pl-sw[aria-pressed="true"]{outline:3px solid var(--life-gold,#c5a261);outline-offset:2px}
+.pl-opt{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;width:74px;padding:6px 4px;border-radius:10px;border:1px solid var(--line,#ccd);background:transparent;color:inherit;font-size:11px;cursor:pointer;white-space:nowrap}
+.pl-opt img{width:48px;height:64px;image-rendering:pixelated}
+.life-avatar{width:36px;height:48px;image-rendering:pixelated;flex:none;align-self:center}
+.pl-editor{box-sizing:border-box;width:100%;min-width:0;overflow:hidden}
+.pl-body,.pl-row,.pl-strip{min-width:0;max-width:100%}
+.careerwelcome:has(.pl-editor){min-width:0}

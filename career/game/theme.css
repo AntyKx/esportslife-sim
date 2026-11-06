@@ -1,0 +1,69 @@
+/* 0.52 主題整理：最後載入。
+   亮色（classic）：底色改成峽谷地圖的青綠＋沙金漸層，取代原本偏紫的藍灰，和金色點綴、白色卡片同一個色系。
+   深色主題：英雄榜、國旗、開局方式、備用英雄、BP 召喚師技能等 0.44 之後的新元件，全部改用主題變數。 */
+
+/* ---------- 亮色 ---------- */
+body:not([data-theme]),body[data-theme=classic]{
+ --accent:#2d6a7f;--accent-soft:#e3eef1;--gold-accent:#b8893a;--gold-soft:#fbf5ea;
+ background-color:#eef1f2;
+ background-image:radial-gradient(1100px 520px at 8% -8%,#d3e6e6 0%,transparent 62%),radial-gradient(900px 460px at 96% -6%,#f2e6d2 0%,transparent 60%),linear-gradient(180deg,#eef1f2 0%,#f3f2ee 100%);
+ background-attachment:fixed}
+body:not([data-theme]) header.life-header,body[data-theme=classic] header.life-header{border-top-color:var(--accent)}
+body:not([data-theme]) :is(.tl-tabs button.sel,.cp-league,.rec-spells,.pool-hint b),body[data-theme=classic] :is(.tl-tabs button.sel,.cp-league,.rec-spells){color:var(--accent)}
+body:not([data-theme]) :is(.backup-chip.on:not(.main),.ladder-role-btns button.selected),body[data-theme=classic] :is(.backup-chip.on:not(.main),.ladder-role-btns button.selected){background:var(--accent);border-color:var(--accent)}
+body:not([data-theme]) .hero.backup,body[data-theme=classic] .hero.backup{border-color:#8fb6c2;background:#f1f7f8}
+body:not([data-theme]) .roles>button.selected,body[data-theme=classic] .roles>button.selected{color:var(--accent)}
+
+/* ---------- 深色主題共用 ---------- */
+body[data-theme]:not([data-theme=classic]){
+ --gold-accent:var(--life-gold);
+ --sel-bg:color-mix(in srgb,var(--life-gold) 16%,var(--surface-raised));
+ --hover-bg:color-mix(in srgb,#fff 6%,var(--surface-raised));
+ background-attachment:fixed}
+body[data-theme]:not([data-theme=classic]) :is(.country-grid button,.mode-grid button,#bpSpells){background:var(--surface-raised);border-color:var(--line);color:var(--text)}
+body[data-theme]:not([data-theme=classic]) :is(.country-grid button,.mode-grid button):hover{background:var(--hover-bg)}
+body[data-theme]:not([data-theme=classic]) :is(.country-grid button.sel,.mode-grid button.sel){background:var(--sel-bg);border-color:var(--life-gold);box-shadow:0 0 0 2px color-mix(in srgb,var(--life-gold) 45%,transparent);color:var(--text)}
+body[data-theme]:not([data-theme=classic]) :is(.country-grid small,.country-grid button.sel small,.mode-grid small,.cp-note,.tl-sub,.pool-hint,.ladder-role small,#bpSpells>summary small,.tl-name small,.tl-table th){color:var(--muted)}
+body[data-theme]:not([data-theme=classic]) :is(.cp-league,.rec-spells){color:color-mix(in srgb,var(--life-blue) 45%,#fff)}
+body[data-theme]:not([data-theme=classic]) .cp-tier{color:var(--life-gold)}
+body[data-theme]:not([data-theme=classic]) .cp-power{background:#ffffff1a}
+body[data-theme]:not([data-theme=classic]) .tl-tabs{background:color-mix(in srgb,#000 22%,var(--surface))}
+body[data-theme]:not([data-theme=classic]) .tl-tabs button{background:transparent;color:var(--muted);border:0}
+body[data-theme]:not([data-theme=classic]) .tl-tabs button.sel{background:var(--surface-raised);color:var(--text);box-shadow:0 2px 6px #0005}
+body[data-theme]:not([data-theme=classic]) .tl-table th{border-bottom-color:var(--line)}
+body[data-theme]:not([data-theme=classic]) .tl-table td{color:color-mix(in srgb,var(--text) 78%,transparent);border-bottom-color:color-mix(in srgb,var(--line) 60%,transparent)}
+body[data-theme]:not([data-theme=classic]) .tl-name{color:var(--text)!important}
+body[data-theme]:not([data-theme=classic]) .tl-table tr[data-tlh]:hover td{background:var(--hover-bg)}
+body[data-theme]:not([data-theme=classic]) .tl-table tr.mine td{background:var(--sel-bg)}
+body[data-theme]:not([data-theme=classic]) .tl-same{color:color-mix(in srgb,var(--muted) 60%,transparent)}
+body[data-theme]:not([data-theme=classic]) .tl-up,body[data-theme]:not([data-theme=classic]) .tl-patch.up{color:#6fcf9f}
+body[data-theme]:not([data-theme=classic]) .tl-down,body[data-theme]:not([data-theme=classic]) .tl-patch.down{color:#ef8d8d}
+body[data-theme]:not([data-theme=classic]) .backup-chip{background:var(--surface);border-color:var(--line);color:var(--muted)}
+body[data-theme]:not([data-theme=classic]) .backup-chip.on{background:var(--life-blue);border-color:var(--life-blue);color:#fff}
+body[data-theme]:not([data-theme=classic]) .backup-chip.main{background:var(--life-gold);border-color:var(--life-gold);color:#1b1b1b}
+body[data-theme]:not([data-theme=classic]) .hero.backup{border-color:color-mix(in srgb,var(--life-blue) 60%,#fff 10%);background:color-mix(in srgb,var(--life-blue) 14%,var(--surface-raised))}
+body[data-theme]:not([data-theme=classic]) .ladder-role-btns button.selected{background:var(--life-blue);border-color:var(--life-blue);color:#fff}
+body[data-theme]:not([data-theme=classic]) .ladder-role>span{color:var(--text)}
+body[data-theme]:not([data-theme=classic]) #patchOpen.new{background:var(--sel-bg);border-color:var(--life-gold);color:var(--life-gold)}
+body[data-theme]:not([data-theme=classic]) #tierList{border-top-color:var(--line)}
+body[data-theme]:not([data-theme=classic]) .patch-more>summary{color:color-mix(in srgb,var(--life-blue) 45%,#fff)}
+
+/* ---------- 新主題：峽谷之夜（地圖的深綠青＋金） ---------- */
+body[data-theme=rift]{background-color:#0d1b1b;background-image:radial-gradient(1100px 560px at 10% -10%,#1d4a45 0%,transparent 62%),radial-gradient(900px 480px at 95% -8%,#3d3320 0%,transparent 60%),linear-gradient(180deg,#0f1f1f 0%,#0b1516 100%)}
+body[data-theme=rift]:not([data-theme=classic]){--surface:#13252a;--surface-raised:#1a3237;--surface-soft:#10201f;--line:#2a4a4c;--text:#eef3ee;--muted:#a3b8b3;--sel-bg:color-mix(in srgb,#d2a24c 13%,#1a3237);--hover-bg:#20393e}
+body[data-theme=rift]:not([data-theme=classic]) header.life-header{background:#122428ee;border-top-color:#2f8f83}
+body[data-theme=rift] :is(.cp-league,.rec-spells,.patch-more>summary){color:#7fd1c4}
+
+/* ---------- 0.53 深色主題：職業賽季、天梯、BP 共用元件 ---------- */
+body[data-theme]:not([data-theme=classic]) :is(.pro-side,.pro-rival,.pro-news){background:var(--surface-raised);border-color:var(--line);color:var(--text)}
+body[data-theme]:not([data-theme=classic]) .pro-event{background:color-mix(in srgb,var(--life-gold) 9%,var(--surface-raised));border-color:color-mix(in srgb,var(--life-gold) 45%,transparent);color:var(--text)}
+body[data-theme]:not([data-theme=classic]) :is(.pro-event h3,.pro-event p,.pro-side h4,.pro-slot b){color:var(--text)}
+body[data-theme]:not([data-theme=classic]) .pro-side.mine{box-shadow:0 0 0 2px var(--life-gold) inset}
+body[data-theme]:not([data-theme=classic]) :is(.pro-slot,.pro-series li,.pro-history li,.pro-offers li){border-color:color-mix(in srgb,var(--line) 70%,transparent)}
+body[data-theme]:not([data-theme=classic]) :is(.pro-slot small,.pro-hero small,.pro-log,.pro-rival small,.pro-news small,.pro-offers small,.growth-card h3 small){color:var(--muted)}
+body[data-theme]:not([data-theme=classic]) .pro-notes span{background:color-mix(in srgb,#fff 8%,var(--surface))}
+body[data-theme]:not([data-theme=classic]) :is(.pro-notes .good,.good){color:#6fcf9f}
+body[data-theme]:not([data-theme=classic]) :is(.pro-notes .bad,.bad){color:#ef8d8d}
+body[data-theme]:not([data-theme=classic]) .pro-slot.you b{color:var(--life-gold)}
+body[data-theme]:not([data-theme=classic]) :is(.growth-attrs i,.ladder-bars i){background:linear-gradient(90deg,var(--life-gold) var(--v),color-mix(in srgb,#fff 12%,var(--surface)) var(--v))}
+body[data-theme]:not([data-theme=classic]) .pro-mid{color:var(--life-gold)}

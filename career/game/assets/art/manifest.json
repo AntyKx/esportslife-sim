@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "tools": {
+    "pixelorama": "1.2.3",
+    "tiled": "1.12.2"
+  },
+  "actors": [
+    {
+      "id": 0,
+      "image": "hero-0.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 1,
+      "image": "hero-1.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 2,
+      "image": "hero-2.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 3,
+      "image": "hero-3.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 4,
+      "image": "hero-4.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 5,
+      "image": "hero-5.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 6,
+      "image": "hero-6.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 7,
+      "image": "hero-7.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 8,
+      "image": "hero-8.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 9,
+      "image": "hero-9.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 10,
+      "image": "hero-10.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 11,
+      "image": "hero-11.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 12,
+      "image": "hero-12.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 13,
+      "image": "hero-13.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    },
+    {
+      "id": 14,
+      "image": "hero-14.png",
+      "width": 1152,
+      "height": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 24
+    }
+  ],
+  "map": {
+    "image": "mist-rift.png",
+    "width": 800,
+    "height": 640
+  }
+}

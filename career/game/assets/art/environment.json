@@ -1,0 +1,7 @@
+{
+  "image": "mist-rift-illustrated-v2.png",
+  "source": "imagegen",
+  "worldWidth": 800,
+  "worldHeight": 640,
+  "description": "Original illustrated forest terrain, fitted to the existing simulation world. The Tiled map remains the gameplay-marker reference and fallback."
+}

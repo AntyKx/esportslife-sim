@@ -1,0 +1,77 @@
+/* 0.87 BP 轉播面板＋禁用列不折行 */
+body.bp-cast-on main{max-width:1320px}
+body.bp-cast-on #draft .pro-log{display:none}
+.bp-stage{display:block}
+.bp-cast{display:none}
+body.bp-cast-on .bp-cast{display:flex;flex-direction:column}
+.bp-cast-head{display:flex;align-items:center;gap:8px;padding:10px 14px;font-weight:800;font-size:14px}
+.bp-cast-head small{margin-left:auto;font-weight:600;color:var(--muted,#7e8795);font-variant-numeric:tabular-nums;font-size:12px}
+.bp-cast-caster{border-top:1px solid var(--line,#e1e5ed);border-bottom:1px solid var(--line,#e1e5ed);background:color-mix(in srgb,var(--life-gold,#c5a261) 10%,transparent);padding:8px 14px}
+.bp-cast-caster p{margin:0;padding:4px 0;font-size:13px;line-height:1.55;opacity:.55}
+.bp-cast-caster p.now{opacity:1;font-size:14px}
+.bp-cast-caster p.tip.now{font-weight:600}
+.bp-cast-caster b{display:block;color:var(--life-gold,#a67e35);font-size:11px}
+.bp-cast .lc-list{height:auto}
+/* 桌機：BP 右側欄，捲動時跟著 */
+@media (min-width:1000px){
+ body.bp-cast-on .bp-stage{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}
+ body.bp-cast-on .bp-cast{position:sticky;top:12px;margin:28px 0 0;height:calc(100vh - 150px);max-height:760px}
+ .bp-cast .lc-list{flex:1 1 0;min-height:0;overflow-y:auto}
+}
+/* 手機／窄螢幕：固定在底部行動列上方，平常只顯示主播最新一句，點一下展開聊天室 */
+@media (max-width:999px){
+ body.bp-cast-on .bp-cast{position:fixed;left:8px;right:8px;bottom:calc(var(--dock-h,100px) + 6px);z-index:39;margin:0;max-height:46vh;box-shadow:0 -4px 18px #0003;cursor:pointer}
+ body.bp-cast-on #draft{padding-bottom:var(--cast-h,140px)}
+ .bp-cast .bp-cast-head{padding:6px 12px;font-size:12px}
+ .bp-cast .bp-cast-head::after{content:'聊天室 ▴';font-size:11px;color:var(--muted,#7e8795);margin-left:8px}
+ .bp-cast.open .bp-cast-head::after{content:'收起 ▾'}
+ .bp-cast .bp-cast-caster{padding:6px 12px;border-bottom:0}
+ .bp-cast:not(.open) .bp-cast-caster p:not(.now){display:none}
+ .bp-cast .bp-cast-caster p.now{font-size:13px}
+ .bp-cast-caster b{display:inline;margin-right:6px}
+ .bp-cast:not(.open) .lc-list{display:none}
+ .bp-cast.open .lc-list{flex:1 1 auto;min-height:0;max-height:24vh;overflow-y:auto;border-top:1px solid var(--line,#e1e5ed)}
+}
+/* 禁用列：名字一行顯示 */
+.pro-board .bp-ban figcaption{display:block!important;white-space:nowrap!important;-webkit-line-clamp:unset!important;min-height:0!important;overflow:hidden;text-overflow:ellipsis;word-break:keep-all!important}
+@media (min-width:761px){
+ .pro-board .bp-bans{grid-template-columns:1fr;gap:3px}
+ .pro-board .bp-ban{display:flex;align-items:center;gap:6px;margin:0;min-width:0}
+ .pro-board .bp-ban .bp-face{width:24px;max-width:24px;height:24px;border-radius:5px}
+ .pro-board .bp-ban figcaption{margin:0;font-size:12px!important;min-width:0}
+}
+@media (max-width:760px){
+ .pro-board .bp-ban figcaption{font-size:11px!important}
+}
+/* BP 時左側選手看板照舊讓位（#draft 被 .bp-stage 包住後，原本的 main:has(> #draft) 規則不再成立） */
+body.bp-cast-on main>#playerBoard{display:none!important}
+body.bp-cast-on main{display:block!important}
+/* 我方天賦與對手天賦並排（桌機），各自收合 */
+#allyTalent .foe-row.me .foe-name{color:var(--life-gold,#a67e35)}
+@media (min-width:1000px){
+ body.bp-cast-on #draft:not([hidden]){display:grid;grid-template-columns:1fr 1fr;column-gap:12px}
+ body.bp-cast-on #draft>*{grid-column:1/-1}
+ body.bp-cast-on #draft>#foeTalent{grid-column:2;grid-row:1}
+ body.bp-cast-on #draft>#allyTalent{grid-column:1;grid-row:1}
+ body.bp-cast-on #draft>#foeTalent,body.bp-cast-on #draft>#allyTalent{align-self:start;margin-bottom:12px}
+ body.bp-cast-on #draft>#foeTalent .foe-talent,body.bp-cast-on #draft>#allyTalent .foe-talent{margin:0}
+}
+/* 英雄卡：頭像在名字右邊、資訊固定兩行、所有卡片等高 */
+.pro-grid:has(>.pro-grid-in){display:block}
+.pro-grid-in{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;grid-auto-rows:1fr}
+.pro-grid .pro-hero{display:grid!important;grid-template-columns:minmax(0,1fr) 24px;align-content:start;column-gap:6px;row-gap:2px;padding:8px!important}
+.pro-grid .pro-hero>*{grid-column:1/-1;min-width:0}
+.pro-grid .pro-hero>canvas.hp-ava{position:static!important;transform:none!important;grid-column:2;grid-row:1;width:24px!important;height:32px!important;align-self:center}
+.pro-grid .pro-hero>strong{grid-column:1;grid-row:1;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pro-grid .pro-hero>small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pro-grid .pro-hero>em{line-height:1.35}
+/* 兩側選角列：頭像固定在左，英雄名／位置與選手各一行，名字長短不影響對齊 */
+.pro-side .pro-slot{display:grid!important;grid-template-columns:30px auto minmax(0,1fr);grid-template-areas:"face hero hero" "face role pl";column-gap:6px;row-gap:0;align-items:center}
+.pro-side .pro-slot>.bp-face.pick{grid-area:face;margin:0!important;width:30px;height:30px}
+.pro-side .pro-slot>b{grid-area:hero;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;line-height:1.3}
+.pro-side .pro-slot>small{grid-area:role;font-size:11px;line-height:1.3}
+.pro-side .pro-slot>.slot-pl{grid-area:pl;font-size:11px;line-height:1.3}
+.pro-side .pro-slot>b{text-align:left}
+/* 禁用頭像：灰階但不壓暗（原本 brightness .75 在深色主題小尺寸下像一團黑），保留紅色斜線 */
+.bp-ban:not(.wait):not(.none) .bp-face img{filter:grayscale(1) brightness(1.15)!important;opacity:.85}
+.bp-ban .bp-face{background:#3a4258!important}
