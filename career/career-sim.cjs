@@ -27,7 +27,7 @@ useBrowser(async({run,wait,sleep,errors})=>{
    const ach=p.achievements||[];
    return {steps,score:S.sc,parts:S.parts,tier:T.n,age:CAREER.data.age,years:p.year-2026,games:p.games,region:WORLD.team(p.team)?.region,
     titles:ach.filter(a=>/冠軍$/.test(a.title)).length,worlds:ach.filter(a=>/世界大賽 冠軍/.test(a.title)).length,
-    seasons:Object.values(p.seasons||{}).map(s=>[s.g,+(s.s/s.g).toFixed(2)]),rating:WORLD.userRating(),ended:!!p.ended};
+    ach:ach.map(a=>a.year+' '+a.title),seasons:Object.values(p.seasons||{}).map(s=>[s.g,+(s.s/s.g).toFixed(2)]),rating:WORLD.userRating(),ended:!!p.ended};
   })()`);
   r.sec=Math.round((Date.now()-t0)/1000);res.push(r);console.log(JSON.stringify(r));
   if(outFile)fs.writeFileSync(outFile,JSON.stringify(res));

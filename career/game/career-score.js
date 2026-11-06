@@ -1,12 +1,15 @@
 'use strict';
 // 0.89 生涯分（參考足球人生）：整段人生一個分數，決定最後的評價等級。
-// 生涯分 = 天梯最高段位 + 青訓表現 + Σ 職業各季（評分 − 5.8）× 出賽局數 × 0.6 × 賽區權重 + 榮譽 × 3 + 人氣
+// 0.92 依雲端 75 段生涯模擬重做：原本出賽分太多（平均 827，能力練高就每季 100 多分）、國內冠軍太容易累積、弱賽區反而分數最高。
+// 生涯分 = 天梯 + 青訓 + Σ 職業各季 min(上限, 局數 ×（評分 − 6.5）× 0.35) × 賽區權重 + 榮譽（依頭銜分級、國內頭銜乘賽區權重）+ 人氣
 // 等級：傳奇／名人堂／明星選手／職業選手／職業過客；沒打上職業的是「平凡人生」。
 // 門檻是依公式推估的暫定值，之後用雲端模擬校準（像足球的 p98／p90／p65／p25）。只讀資料，不改遊戲狀態。
 (()=>{
 const LADDER_PTS=[0,2,4,7,10,14,18,24,30,40];
-const REG_W={SCL:1.25,DRL:1.2,EUL:1,NSL:.95,PRL:.9,SXL:.8};
-const BASE=5.8,K=.6,HONOR_X=3;
+const REG_W={SCL:1.3,DRL:1.25,EUL:1,NSL:.85,PRL:.75,SXL:.65};
+const BASE=6.5,K=.35,SEASON_CAP=45;
+// 榮譽：國際賽不乘賽區權重，國內賽段冠軍與年度最佳乘當年所屬賽區權重
+const HONOR=[[/世界大賽 冠軍/,400,0],[/世界大賽 亞軍/,150,0],[/世界大賽 四強/,70,0],[/季中邀請賽 冠軍/,180,0],[/開季先鋒賽 冠軍/,110,0],[/年度最佳/,30,1],[/冠軍$/,35,1]];
 const TIERS=[
  {n:'傳奇',min:1500,col:'#ffd36b',desc:(r,rg)=>`${rg}歷史上最偉大的${r}`},
  {n:'名人堂',min:900,col:'#f0b85a',desc:(r,rg)=>`${rg}名人堂${r}`},
@@ -24,10 +27,11 @@ function calc(c){c=c||CAREER.data;const out={ladder:0,academy:0,pro:0,honor:0,fa
  const l=c.ladder||window.LADDER?.data||{},peak=Math.max(l.tier??0,l.peak??0);out.ladder=LADDER_PTS[Math.min(LADDER_PTS.length-1,Math.max(0,peak))]||0;
  const rs=(c.results||[]).map(x=>x.rating).filter(x=>x!=null);out.academy=Math.max(0,rs.reduce((a,r)=>a+Math.max(-1.5,r-6)*4,0))+(c.champion?30:c.finalist?15:0);
  const p=c.pro;let seasons=[];
- if(p){let g=0;for(const [y,r] of Object.entries(p.seasons||{})){if(!r.g)continue;const avg=r.s/r.g,w=REG_W[regionOf(r.team)]??1,pts=Math.max(0,r.g*(avg-BASE)*K*w);g+=r.g;out.pro+=pts;seasons.push({year:+y,g:r.g,avg,pts,team:r.team});}
-  const miss=Math.max(0,(p.games||0)-g);out.pro+=miss*.42; // 舊存檔沒有逐季評分：用平均表現估
-  out.honor=(p.achievements||[]).reduce((a,x)=>a+(x.pts||0),0)*HONOR_X;}
- out.fans=Math.min(150,(c.fans||0)/40);
+ if(p){let g=0;for(const [y,r] of Object.entries(p.seasons||{})){if(!r.g)continue;const avg=r.s/r.g,w=REG_W[regionOf(r.team)]??1,pts=Math.max(0,Math.min(SEASON_CAP,r.g*(avg-BASE)*K))*w;g+=r.g;out.pro+=pts;seasons.push({year:+y,g:r.g,avg,pts,team:r.team});}
+  const miss=Math.max(0,(p.games||0)-g);out.pro+=Math.min(miss*.12,SEASON_CAP*Math.ceil(miss/80)); // 舊存檔沒有逐季評分：用一般表現估
+  const wOf=y=>REG_W[regionOf(p.seasons?.[y]?.team||p.team)]??1;
+  out.honor=(p.achievements||[]).reduce((a,x)=>{const h=HONOR.find(([re])=>re.test(x.title||''));return a+(h?h[1]*(h[2]?wOf(x.year):1):(x.pts||0));},0);}
+ out.fans=Math.min(100,(c.fans||0)/50);
  for(const k in out)out[k]=Math.round(out[k]);
  const sc=Object.values(out).reduce((a,b)=>a+b,0);return {sc,parts:out,seasons,pro:!!p};}
 function tierInfo(c,sc){c=c||CAREER.data;sc=sc??calc(c).sc;if(!c?.pro)return {...ORDINARY,i:TIERS.length,next:TIERS[TIERS.length-1],gap:0,ordinary:true};
