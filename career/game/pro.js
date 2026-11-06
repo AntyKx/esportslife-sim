@@ -122,7 +122,7 @@ function autoTrain(c){const plan=P().plan||'balance';let n=training;const seq=pl
  for(let i=0;i<n;i++){const t=seq[i%3];if(c.energy<35||t==='r'){GROWTH.train(c,'rest');continue;}if(t==='h'&&GROWTH.heroTrain(c,selected))continue;GROWTH.train(c,bestCourse(c));}training=0;}
 function simSeriesQuick(u){const p=P(),c=CAREER.data,opp=u.sr.a===us()?u.sr.b:u.sr.a;W.simUser();const sr=u.sr,win=sr.w===us(),m=mate(),games=sr.s[0]+sr.s[1];
  const perf=Math.max(3,Math.min(9.5,6.3+(win?.6:-.4)+(W.userRating()-(m?.rating??W.userRating()))/8+(Math.random()-.5)*1.6));pushForm(perf);window.SCORE?.rec(p,perf,games);
- c.trust=Math.max(0,Math.min(100,c.trust+Math.round((perf-6.3)*1.5)));c.fans+=win?12:4;GROWTH.addMastery(selected,1.5*games,true);rivalResult(opp,win);p.games=(p.games||0)+games;
+ c.trust=Math.max(0,Math.min(100,c.trust+Math.round((perf-6.3)*1.5)));c.fans+=win?12:4;GROWTH.addMastery(selected,1.5*games,true);GROWTH.simXP?.(c,games);rivalResult(opp,win);p.games=(p.games||0)+games;
  sq().prep=null;sq().call=null;const line=`${tn(us())} ${sr.a===us()?sr.s.join(':'):[...sr.s].reverse().join(':')} ${tn(opp)}（模擬・個人評分 ${perf.toFixed(1)}）`;p.log.push(line);return {win,line};}
 function fastForward(){const p=P(),c=CAREER.data,out={w:0,l:0,lines:[],weeks:0,stop:''};
  for(let i=0;i<160;i++){if(p.event){out.stop='本週事件';break;}if(p.ended||W.PHASES[p.phase][0]==='off'){out.stop='休賽期';break;}

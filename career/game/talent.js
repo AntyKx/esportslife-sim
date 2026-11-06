@@ -44,6 +44,8 @@ const A={
  angel:{n:'守護天使',c:'blue',role:4,d:'身邊隊友承傷 −6%'},
  guard:{n:'犧牲精神',c:'blue',role:4,d:'身邊殘血（<30%）隊友承傷 −15%'},
  fast:{n:'學習快',c:'green',d:'屬性訓練效果 +20%'},
+ grinder:{n:'苦練型',c:'green',d:'能力可以練到潛力 +8（一般只能到潛力 +3）'},
+ spark:{n:'大賽開竅',c:'green',d:'拿下頭銜、擊敗宿敵時，突破潛力的機率 ×2'},
  discipline:{n:'自律',c:'green',d:'訓練體力消耗 −20%'},
  research:{n:'英雄研究家',c:'green',d:'英雄熟練度練習效果 +30%'},
  veteran:{n:'老將智慧',c:'green',d:'年紀增長的能力衰退減半'},
@@ -73,7 +75,7 @@ const A={
 // 紅色能力的克服方式：哪個訓練會累積克服進度
 const OVERCOME={glass:'mental',tilt:'mental',choke:'mental',haters:'mental',slow:'laning',feeder:'awareness',lonewolf:'teamwork',lazy:'*',wrist:'stamina'};
 // 互斥：同組不會同時出現
-const CLASH=[['early','slow'],['clutch','choke'],['heart','choke'],['discipline','lazy'],['discipline','wrist'],['fast','lazy'],['varied','lazy'],['grit','glass'],['comeback','glass'],['survive','feeder'],['phoenix','feeder'],['comm','lonewolf'],['commander','lonewolf'],['initiate','lonewolf'],['coachpet','haters'],['popular','haters'],['steady','tilt']];
+const CLASH=[['grinder','lazy'],['early','slow'],['clutch','choke'],['heart','choke'],['discipline','lazy'],['discipline','wrist'],['fast','lazy'],['varied','lazy'],['grit','glass'],['comeback','glass'],['survive','feeder'],['phoenix','feeder'],['comm','lonewolf'],['commander','lonewolf'],['initiate','lonewolf'],['coachpet','haters'],['popular','haters'],['steady','tilt']];
 const TIERS=[
  {k:'普通',g:'C',p:.60,pot:[65,75],gold:0,blue:[0,1],pos:.30,green:[0,1],red:[0,2]},
  {k:'有潛力',g:'B',p:.28,pot:[72,82],gold:0,blue:[1,2],pos:.50,green:[0,1],red:[0,1]},

@@ -25,7 +25,25 @@ function ensure(c,young){if(!c)return c;const R=rng(hash(c.id+'g'));
  if(!c.styles){const tags=Object.keys(DRAFT.TAG_NAME).sort(()=>R()-.5);c.styles={like:tags.slice(0,2),dislike:tags[2]};}
  if(c.energy==null)c.energy=80;if(c.clock==null)c.clock=0;if(!c.heroUse)c.heroUse={};if(c.fans==null)c.fans=0;return c;}
 function ageMul(c){const a=c.age,t=c.growth;if(t==='early')return a<=20?1.3:a<=23?1:.6;if(t==='late')return a<=20?.8:a<=25?1.15:.9;return a<=22?1.1:a<=25?1:.8;}
-function gain(c,k,base){const v=c.stats[k],pot=c.pot,f=v>=pot?.05:Math.max(.08,(pot-v)/(pot-20)),g=base*ageMul(c)*f;c.stats[k]=Math.min(100,r1(v+g));return g;}
+// 0.92 成長平衡（雲端模擬：原本潛力 72 的人 12 年後也到 92，人人頂尖）
+// 潛力變成天花板：超過潛力後幾乎不長，最多到潛力 +3（「苦練型」+8）；整體成長放慢 25%；強隊教練團最多 +20%。
+const SLOW=.75;
+const hasT=(c,id)=>!!c?.talent?.abilities?.includes(id);
+const capOf=c=>Math.min(100,(c.pot||80)+(hasT(c,'grinder')?8:3));
+function coachMul(c){const p=c?.pro;if(!p||!window.WORLD)return 1;try{const r=WORLD.team(p.team)?.rating||76;return 1+Math.max(0,Math.min(.2,(r-76)/100));}catch{return 1;}}
+function gain(c,k,base){const v=c.stats[k],pot=c.pot,cap=capOf(c);if(v>=cap)return 0;const f=v>=pot?.03:Math.max(.08,(pot-v)/(pot-20)),g=base*ageMul(c)*f*SLOW*coachMul(c);c.stats[k]=Math.min(cap,r1(v+g));return g;}
+// 自動模擬的比賽也給一點經驗（親自上場的約 1/8）
+function simXP(c,games){ensure(c);const m=.25*Math.max(0,games||0);for(const [k,b] of [['laning',.6],['mechanics',.5],['teamfight',.6],['awareness',.4],['macro',.4],['mental',.3]])gain(c,k,b*m);}
+// 突破時刻：拿下頭銜、擊敗宿敵時，有機會讓潛力上升（整段生涯最多 +10）
+const BT=[[/世界大賽 冠軍/,1,3],[/季中邀請賽 冠軍|開季先鋒賽 冠軍/,.8,2],[/世界大賽 (亞軍|四強)/,.5,1],[/年度最佳/,.4,1],[/冠軍$/,.2,1]];
+function breakthrough(c){const p=c?.pro;if(!p||p.ended)return;const ach=p.achievements||[],rv=p.rival;
+ if(!p.btSeen){p.btSeen={ach:ach.length,rid:rv?.id,rw:rv?.w||0};return;}
+ const sp=hasT(c,'spark')?2:1,got=[];
+ for(;p.btSeen.ach<ach.length;p.btSeen.ach++){const a=ach[p.btSeen.ach],b=BT.find(([re])=>re.test(a.title||''));if(b&&Math.random()<Math.min(1,b[1]*sp))got.push([b[2],a.title]);}
+ if(rv){if(p.btSeen.rid!==rv.id){p.btSeen.rid=rv.id;p.btSeen.rw=rv.w||0;}for(;p.btSeen.rw<(rv.w||0);p.btSeen.rw++)if(Math.random()<.12*sp)got.push([1,'擊敗宿敵']);}
+ for(const [n,why] of got){const room=Math.max(0,10-(c.potBoost||0)),add=Math.min(n,room,99-(c.pot||80));if(add<=0)continue;c.pot+=add;c.potBoost=(c.potBoost||0)+add;(p.log||=[]).push(`突破時刻：${why}，潛力 +${add}（${c.pot}）`);}
+ if(got.length)try{CAREER.save();}catch{}}
+setInterval(()=>{try{breakthrough(window.CAREER?.data);}catch{}},700);
 const cost=c=>Math.max(5,r1(12-c.stats.stamina/12));
 function train(c,key){ensure(c);if(key==='rest'){c.energy=Math.min(100,c.energy+30);return true;}const co=COURSES.find(x=>x[0]===key);if(!co||c.energy<cost(c))return false;c.energy=r1(c.energy-cost(c));for(const [k,b] of Object.entries(co[2]))gain(c,k,b);return true;}
 function heroTrain(c,i){ensure(c);if(c.energy<cost(c)||!heroes[i]||heroes[i].mastery>=M_CAP)return false;c.energy=r1(c.energy-cost(c));addMastery(i,6,false);c.heroUse[i]=c.clock;return true;}
@@ -35,7 +53,7 @@ function matchXP(c,mult,hero,win){ensure(c);const m=mult||1;for(const [k,b] of [
 function tick(c){ensure(c);c.clock++;if(window.META)META.weekly(c);const spare=typeof training==='number'?Math.max(0,Math.min(3,training)):0;c.energy=Math.min(100,r1(c.energy+12+c.stats.stamina/10+spare*30));const lost=[];
  if(c.clock%4===0)heroes.forEach((h,i)=>{if(h.mastery>30&&(c.heroUse[i]??-99)<c.clock-8){h.mastery=r1(h.mastery-1);if(h.role===c.role)lost.push(i);}});return lost;}
 function age(c){ensure(c);const a=c.age,start=c.growth==='early'?24:c.growth==='late'?27:25;if(a>=start){const d=Math.min(4,1+Math.floor((a-start)/1.5));c.stats.mechanics=Math.max(20,r1(c.stats.mechanics-d));c.stats.laning=Math.max(20,r1(c.stats.laning-d*.6));c.stats.stamina=Math.max(20,r1(c.stats.stamina-d*.5));}
- if(a<=29){c.stats.awareness=Math.min(100,r1(c.stats.awareness+1));c.stats.macro=Math.min(100,r1(c.stats.macro+1));}}
+ if(a<=29){const cap=capOf(c);c.stats.awareness=Math.max(c.stats.awareness,Math.min(cap,r1(c.stats.awareness+1)));c.stats.macro=Math.max(c.stats.macro,Math.min(cap,r1(c.stats.macro+1)));}}
 function overall(c){ensure(c);const w=WEIGHT[c.role];return KEYS.reduce((x,k,i)=>x+w[i]*c.stats[k],0);}
 function rating(c){if(!c)return 70;const fam=.9+.1*(c.roleFam?.[c.role]??80)/100,en=(c.energy??80)<30?.95:1;return Math.round((40+overall(c)*.6)*fam*en);}
 function pool(role){return heroes.map((h,i)=>i).filter(i=>ROSTER[i].role===role).sort((a,b)=>heroes[b].mastery-heroes[a].mastery).slice(0,4);}
@@ -45,7 +63,7 @@ function styleMul(c,hero){if(!c?.styles||hero==null)return 1;const tags=DRAFT.TA
 const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 function stars(p){const n=Math.max(1,Math.min(5,Math.round((p-65)/6)));return '★'.repeat(n)+'☆'.repeat(5-n);}
 function card(c){ensure(c);const ROLE=['上路','打野','中路','射手','輔助'];
- return `<article class="panel growth-card"><h3>選手卡 <small>綜合 ${rating(c)} · 潛力 ${stars(c.pot)} · ${TYPES[c.growth]}</small></h3>
+ return `<article class="panel growth-card"><h3>選手卡 <small>綜合 ${rating(c)} · 潛力 ${stars(c.pot)} · ${TYPES[c.growth]}${coachMul(c)>1.005?` · 教練團訓練 +${Math.round((coachMul(c)-1)*100)}%`:''}</small></h3>
  <div class="growth-attrs">${ATTRS.map(([k,n])=>`<div><span>${n}</span><i style="--v:${c.stats[k]}%"></i><b>${Math.round(c.stats[k])}</b></div>`).join('')}</div>
  <p class="muted">體力 ${Math.round(c.energy)} / 100 · 每次訓練消耗 ${cost(c)}${c.energy<30?' · <b class="bad">體力不足，比賽表現下降</b>':''}</p>
  <p class="muted">位置熟悉：${ROLE.map((r,i)=>`${r} ${Math.round(c.roleFam[i])}`).join('・')}</p>
@@ -71,9 +89,9 @@ const prevDamage=bDamage;
 bDamage=function(from,to,amount){const s=state,c=CAREER.data;if(c&&s&&(s.careerMatchId||s.proGame)&&from?.player&&to?.kind==='hero'){ensure(c);const v=s.time<840?c.stats.laning:c.stats.teamfight;let m=(.94+v/800)*styleMul(c,from.heroIndex);if(c.energy<30)m*=.94;if(s.gold&&s.gold[0]<s.gold[1]*.9)m*=.94+c.stats.mental/800;amount*=m;}return prevDamage(from,to,amount);};
 // 生涯比賽結束：比賽經驗、英雄熟練、一週過去
 const prevFinish=finish;
-finish=function(){const s=state,c=CAREER.data,was=!!(s&&!s.done&&c&&(s.careerMatchId||s.proGame)),big=s?.proGame?1.4:1,hero=s?.actors?.find(a=>a.player)?.heroIndex;prevFinish();
+finish=function(){const s=state,c=CAREER.data,was=!!(s&&!s.done&&c&&(s.careerMatchId||s.proGame)),big=s?.proGame?2:1,hero=s?.actors?.find(a=>a.player)?.heroIndex;prevFinish();
  if(was&&state.done){matchXP(c,big,hero,state.winner===0);if(!c.pro)tick(c);CAREER.save();}};
 Object.assign(window.ESPORTS,{bDamage});
-window.GROWTH={ATTRS,KEYS,NAME,WEIGHT,TYPES,COURSES,TIER,ensure,gain,train,heroTrain,matchXP,tick,age,overall,rating,pool,styleMul,card,coursesHTML,decorate,cost,addMastery,mFactor,M_CAP,realPlay};
+window.GROWTH={simXP,breakthrough,capOf,coachMul,SLOW,ATTRS,KEYS,NAME,WEIGHT,TYPES,COURSES,TIER,ensure,gain,train,heroTrain,matchXP,tick,age,overall,rating,pool,styleMul,card,coursesHTML,decorate,cost,addMastery,mFactor,M_CAP,realPlay};
 renderSetup();
 })();
