@@ -37,7 +37,8 @@ const mix=(f,a,b)=>a==null||b==null?null:f*a+(1-f)*b;
 const OFF={objGo:-.02,objStay:-.52,objCall:.24,join:-.084,engage:.69,retreat:-.15,side:.85,siege:.19};
 // 個人時刻（對線、被抓、野區、守家、對手中路消失）的補差：先由雲端隨機對照實驗量出，填在這裡
 // 樣本 ≥40 的直接用實測補差；樣本少的依 n/(n+60) 打折，避免被少數幾場帶偏（對線類事件在模擬裡很少觸發）
-const OFF2={bdFight:1.09,bdHold:.53,ivGo:.32,ivStay:.47,llJg:-.3,gwBack:.16,gwJg:-.18,gwStay:-.07,joGo:-.09,llBack:-.45,lwHelp:-.13,bdHunt:.34,lwDive:0,mmBack:0,mmWard:0,mmJg:0,whLurk:0,bdSteal:0};
+// 1.07 對線類補資料（雲端 LANE 模式 1200 場）：被 gank、對線優劣勢、打野幫忙各 88～1028 筆
+const OFF2={bdFight:1.34,bdHold:.56,bdHunt:.39,gwBack:-.18,gwJg:-.26,gwStay:-.38,ivGo:.47,ivStay:.69,joGo:-.07,llBack:-.91,llJg:-.67,lwDive:.78,lwHelp:.38,mmBack:.08,mmJg:.03,mmWard:.01,whLurk:0,bdSteal:0};
 const logit=v=>Math.log(v/(1-v));
 // 第二輪驗證（新種子）：各選項誤差都在 ±5% 內，但 80% 以上和 10% 以下偏太自信 → logit 再乘 0.8，範圍限制在 15%～85%
 function adj(key,v){if(v==null)return null;return Math.max(.15,Math.min(.85,sig((logit(Math.max(.02,Math.min(.98,v)))+(OFF[key]??OFF2[key]??0))*.8)));}
