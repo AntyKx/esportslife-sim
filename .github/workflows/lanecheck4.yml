@@ -1,0 +1,29 @@
+name: lanecheck4
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: 每組場數
+        default: '25'
+jobs:
+  data:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: ['61', '62', '63', '64', '65', '66', '67', '68']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: collect
+        run: |
+          LANE=2 node sim/odds-check.cjs ${{ inputs.games }} ${{ matrix.seed }} | tee summary.json
+          cat summary.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lane4-${{ matrix.seed }}
+          path: |
+            check.json
+            summary.json
