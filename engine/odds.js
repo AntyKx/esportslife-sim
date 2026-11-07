@@ -32,6 +32,10 @@ function p(kind,c,team=0,o={}){const m=MODEL[kind];if(!m||!state||!M())return nu
 // 隊友跟你的機率：教練信任、名氣；練習賽 60%
 function follow(){const c=window.CAREER?.data,s=state;if(!c||!(s?.careerMatchId||s?.proGame))return .6;const tr=c.trust??50,fame=Math.min(.15,(c.fans||0)/4000);return Math.max(.2,Math.min(.92,.3+(tr-30)/100+fame));}
 const mix=(f,a,b)=>a==null||b==null?null:f*a+(1-f)*b;
+// 選項校正（雲端隨機對照實驗：每個選項隨機選 240～580 次，實際勝率 vs 原始預估，在 logit 上補差）
+const OFF={objGo:-.165,objStay:-.352,objCall:.209,join:-.084,engage:.611,retreat:-.117,side:.418,siege:.525};
+const logit=v=>Math.log(v/(1-v));
+function adj(key,v){if(v==null)return null;return Math.max(.06,Math.min(.9,sig(logit(Math.max(.02,Math.min(.98,v)))+(OFF[key]||0))));}
 // ---------- 選項上的圓環 ----------
 const TAGS={safe:'穩健',std:'標準',risky:'冒險'};
 function ring(od){if(!od||od.p==null)return od?.note?`<span class="od"><span class="od-txt">${od.note}</span></span>`:'';const v=Math.round(od.p*100);
@@ -47,5 +51,5 @@ const prevTick=tick;tick=function(dt){prevTick(dt);const s=state;if(!s?.oddsWatc
  for(const w of s.oddsWatch.slice()){const res=judge(s,w);if(!res&&!s.done)continue;s.oddsWatch.splice(s.oddsWatch.indexOf(w),1);const r=res||'none';
   const e={choice:w.choice,p:w.p,res:r,what:w.what,t:s.time,upset:r==='win'&&w.p!=null&&w.p<.35,choke:r==='lose'&&w.p!=null&&w.p>.7};(s.oddsLog||(s.oddsLog=[])).push(e);
   try{log(`預估結果　「${w.choice}」預估 ${w.p!=null?Math.round(w.p*100)+'%':'—'} → ${r==='win'?'成功':r==='lose'?'失敗':'沒有分出勝負'}`);M().story('odds',0,{label:w.choice,result:r,p:w.p,upset:e.upset});}catch{}}};
-window.ODDS={p,feats,follow,mix,watch,ring,myMul,MODEL};
+window.ODDS={p,feats,follow,mix,adj,watch,ring,myMul,MODEL};
 })();
