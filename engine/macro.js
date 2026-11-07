@@ -375,6 +375,8 @@ function resolveMoment(){const s=state,m=s.momentTrack;if(!m||s.time<m.until)ret
  (s.momentLog||(s.momentLog=[])).push({type:m.type,choice:m.choice,result,dk,dd,dt});
  const sum=`${MOMENT_TXT[m.type]||'決策'}（${m.choice}）：${dk?`擊殺 +${dk} `:''}${da?`助攻 +${da} `:''}${dt?`推掉 ${dt} 座塔 `:''}${dd?`陣亡 ${dd} 次 `:''}${!dk&&!da&&!dt&&!dd?'雙方沒有交換':''}`;
  try{log(`決策結果　${sum}`);}catch{}story('moment',0,{result,choice:m.choice,label:MOMENT_TXT[m.type]||''});}
+// 測試用：看對線類關鍵時刻的條件（雲端校正實驗用，不影響遊戲）
+function laneProbe(p){const s=state,lane=bLane(p.role),foe=laneFoe(p),ejg=s.actors.find(b=>b.team!==p.team&&b.role===1&&live(b)),eg=ejg&&GANK.get(ejg);return {inLane:(p.task?.kind||'lane')==='lane'&&!p.recalling&&distToLane(p,lane)<80&&dist(p,bBase(p.team))>200,foeHere:!!(foe&&dist(foe,p)<300&&distToLane(foe,lane)<90),lead:laneLead(p,lane),foeHp:foe?foe.hp/foe.maxHp:1,hp:p.hp/p.maxHp,gank:!!(eg&&eg.victim===p),arrived:!!eg?.arrived,dj:ejg?dist(ejg,p):9999};}
 function keyMoment(s,p){if(s.time<150||s.time>1500||(s.eventCount||0)>=10||s.time<840&&(s.eventCount||0)>=5||s.lastMomentAt>s.time-45)return false;const lane=bLane(p.role),cnt=s.momentCount||(s.momentCount={}),cd=k=>s.macroEvents[k]>s.time||(cnt[k]||0)>=2,mark=(k,t)=>{s.macroEvents[k]=s.time+t;if(k!=='lane')cnt[k]=(cnt[k]||0)+1;};
  const OD=(...x)=>window.ODDS?.OD?.(...x)||null;
  const foe=laneFoe(p),hint=kitHint(p),inLane=(p.task?.kind||'lane')==='lane'&&!p.recalling&&distToLane(p,lane)<80&&dist(p,bBase(0))>200,foeHere=foe&&dist(foe,p)<300&&distToLane(foe,lane)<90,mast=Math.round(heroes[p.heroIndex]?.mastery||0),ward=s.wards.some(w=>!w.team&&w.until>s.time&&dist(w,p)<320);
@@ -519,7 +521,7 @@ function paintRecall(c){const s=state;for(const a of s.actors){if(a.recallAt==nu
 function paintWorld(c){const s=state;if(s?.actors)paintRecall(c);if(!s?.wards)return;for(const w of s.wards){if(w.until<=s.time||(w.team&&!bVisible(w)))continue;c.save();c.globalAlpha=Math.min(1,(w.until-s.time)/10);c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(w.x,w.y+3,4,1.6,0,0,Math.PI*2);c.fill();c.fillStyle=w.team?'#e98b7f':'#7fd3e2';c.strokeStyle='#1c2130';c.lineWidth=.8;c.beginPath();c.moveTo(w.x,w.y-9);c.lineTo(w.x+3,w.y+2);c.lineTo(w.x-3,w.y+2);c.closePath();c.fill();c.stroke();c.beginPath();c.arc(w.x,w.y-10,2.2,0,Math.PI*2);c.fillStyle='#fff6c8';c.fill();if(!w.team){c.globalAlpha=.12;c.beginPath();c.arc(w.x,w.y,115,0,Math.PI*2);c.fillStyle='#bfefff';c.fill();}c.restore();}}
 // player's team sees through its wards
 const baseVisible=bVisible;bVisible=function(u){if(baseVisible(u))return true;const s=state;return !!s?.wards?.some(w=>w.team===0&&w.until>s.time&&dist(w,u)<115);};
-return{story,moveTo,skirmish,spell,use,sees,laneRoles,ownTower,laneLead,fightValue,iqOf,placeWard,sweep,TP_CHANNEL,distToLane,laneOf,underEnemyTower,escape,goHome,recSpells,choiceFor,setChoice,spellsFor,campAggro:c=>CAMP_AGGRO.get(c),SPELLS,DEFAULT_SPELLS,heroPower,plan,sees,paintWorld,levelMul,tough,xpNeed,get spots(){return SPOTS;},effectiveBar,policy};
+return{laneProbe,story,moveTo,skirmish,spell,use,sees,laneRoles,ownTower,laneLead,fightValue,iqOf,placeWard,sweep,TP_CHANNEL,distToLane,laneOf,underEnemyTower,escape,goHome,recSpells,choiceFor,setChoice,spellsFor,campAggro:c=>CAMP_AGGRO.get(c),SPELLS,DEFAULT_SPELLS,heroPower,plan,sees,paintWorld,levelMul,tough,xpNeed,get spots(){return SPOTS;},effectiveBar,policy};
 })();
 // team-fight threshold honours one-off player decisions
 if(typeof window!=='undefined')window.MACRO=MACRO;

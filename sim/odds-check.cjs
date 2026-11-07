@@ -15,9 +15,13 @@ function harness(seed){const elements=new Map(),el=()=>({hidden:false,textConten
 const N=+(process.argv[2]||10),S0=+(process.argv[3]||1),out=[];
 for(let g=0;g<N;g++){const ctx=harness(S0*7919+g*104729);
  vm.runInContext(`role=${g%5};{const pool=ROSTER.map((h,i)=>[h,i]).filter(([h])=>h.role===role).map(x=>x[1]);selected=pool[${(g*7+S0*3)}%pool.length];}start();`,ctx);
+ // LANE=1：對方打野更常選你當目標（製造被 gank 的情境）
+ if(process.env.LANE)vm.runInContext(`{const g=window.PLAYS.gankBonus;window.PLAYS.gankBonus=(a,v,l)=>g(a,v,l)+(v.player?2.5:0);}`,ctx);
  for(let i=0;i<20000;i++){const s=vm.runInContext('state',ctx);if(!s||s.done)break;if(s.decision){const ch=s.decision.choices,sur=s.decision.type==='surrender';const k=sur?1:Math.floor(ctx.Math.random()*ch.length),c=ch[k];
-   s.__dec=s.__dec||[];s.__dec.push({type:s.decision.type,name:c.name,p:c.odds?.p??null});s.decision=null;c.run();s.next=s.time+210;}
-  vm.runInContext('tick(.25)',ctx);}
+   s.__dec=s.__dec||[];s.__dec.push({type:s.decision.type,name:c.name,p:c.odds?.p??null});s.decision=null;c.run();s.next=s.time+(process.env.LANE?15:210);}
+  vm.runInContext('tick(.25)',ctx);
+  // LANE=1：對線期把個人關鍵時刻的冷卻和次數上限拿掉，讓被 gank、對線優劣、中路消失、做視野等情境多出現
+  if(process.env.LANE&&i%4===0)vm.runInContext(`if(state.time<1200&&!state.decision){state.eventCount=0;state.lastMomentAt=-99;state.momentCount={};state.lastByType={};state.next=Math.min(state.next||0,state.time+1);const me=state.macroEvents||{};for(const k of ['gw','jo','lw','ll','iv','mm','wh','lane'])me[k]=0;}`,ctx);}
  const L=vm.runInContext('JSON.stringify(state.oddsLog||[])',ctx);for(const e of JSON.parse(L))out.push(e);}
 const G={};for(const e of out){const k=e.choice.replace(/元素翼龍|深淵領主|太古翼龍|岩角巨獸|裂隙蟲群/,'X').replace(/上路|中路|下路/,'某路');const o=G[k]||(G[k]={n:0,p:0,win:0,lose:0,none:0});o.n++;o.p+=e.p||0;o[e.res]++;}
 const rep=Object.fromEntries(Object.entries(G).map(([k,o])=>{const dec=o.win+o.lose;return [k,{n:o.n,預估:+(o.p/o.n*100).toFixed(1),實際勝率:dec?+(o.win/dec*100).toFixed(1):null,實際含平手:+(o.win/o.n*100).toFixed(1),平手率:+(o.none/o.n*100).toFixed(1)}];}));
