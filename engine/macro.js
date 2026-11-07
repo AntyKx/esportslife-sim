@@ -8,7 +8,7 @@ const SPELLS={flash:{name:'閃現',cd:300,desc:'朝目標方向瞬間移動一�
 const SPELL_ORDER=['flash','tp','smite','ignite','heal','barrier','exhaust','ghost','cleanse'];
 const DEFAULT_SPELLS=[['flash','tp'],['flash','smite'],['flash','ignite'],['flash','heal'],['flash','ignite']];
 function validSpells(pick,r){if(!Array.isArray(pick)||pick.length!==2||pick[0]===pick[1]||!pick.every(id=>SPELLS[id]))return false;return r!==1||pick.includes('smite');}
-const POLICY_DEFAULT={lane:'safe',jungle:'balanced',objective:'priority',macro:'group',fight:'balanced'};
+const POLICY_DEFAULT={lane:'safe',jungle:'balanced',objective:'priority',macro:'group',fight:'balanced',style:'auto'};
 const FORTIFY=840,RECALL=8,TP_CHANNEL=4;
 const FOCUS=new WeakMap(),GANK=new WeakMap(),CAMP_AGGRO=new WeakMap();
 const opp=t=>1-t,live=a=>bLive(a),T=()=>state;
@@ -121,7 +121,7 @@ function plan(t){const s=state,e=opp(t),us=s.actors.filter(a=>a.team===t&&live(a
  const P=us.reduce((x,a)=>x+heroPower(a),0)/Math.max(.1,them.reduce((x,a)=>x+heroPower(a),0));
  const outerDown=s.structures.filter(u=>u.kind==='tower'&&u.tier===0&&u.hp<=0).length,innerDown=s.structures.some(u=>u.kind==='tower'&&u.tier>=1&&u.hp<=0);
  const phase=s.time<FORTIFY&&outerDown<3?'lane':s.time<1500&&!innerDown?'mid':'late';
- const pol=t?POLICY_DEFAULT:policy(),order=!t&&s.teamOrder&&s.teamOrder.until>s.time?s.teamOrder:null;
+ const pol=POLICY_DEFAULT,order=!t&&s.teamOrder&&s.teamOrder.until>s.time?s.teamOrder:null;
  let mode=phase==='lane'?'lane':'group',point=null,obj=null,lane=1;
  // threatened base?
  const threatened=s.structures.filter(u=>u.team===t&&u.hp>0&&(u.kind==='inhibitor'||u.kind==='tower'&&u.tier>=2)).find(u=>enemyThreatAt(t,u,230)>=2);
@@ -237,7 +237,7 @@ function moveTo(a,p,dt,keep=0,force=false){const s=T();if(!p||a.rootUntil>s.time
 function placeWard(a,near){const s=state;if(!SPOTS||a.wardCharges<1)return;const spot=SPOTS.map(p=>({x:p[0],y:p[1]})).filter(p=>dist(p,near)<220&&dist(p,a)<60&&!s.wards.some(w=>w.team===a.team&&w.until>s.time&&dist(w,p)<100)).sort((x,y)=>dist(x,a)-dist(y,a))[0];if(!spot)return;a.wardCharges--;s.wards.push({x:spot.x,y:spot.y,team:a.team,until:s.time+120,owner:a.role});}
 function sweep(a){const s=state;s.wards=s.wards.filter(w=>!(w.team!==a.team&&dist(w,a)<100));}
 function wardTarget(a,near){if(!SPOTS||a.wardCharges<1)return null;const s=state;return SPOTS.map(p=>({x:p[0],y:p[1]})).filter(p=>dist(p,near)<200&&!s.wards.some(w=>w.team===a.team&&w.until>s.time&&dist(w,p)<100)).sort((x,y)=>dist(x,a)-dist(y,a))[0]||null;}
-function jungle(a,dt){const s=state,pol=a.team?POLICY_DEFAULT:policy();
+function jungle(a,dt){const s=state,pol=a.player?policy():POLICY_DEFAULT;
  // gank check
  const old=GANK.get(a);if(old&&s.time>old.until){if(old.arrived&&live(old.victim))story('gankFail',a.team,{who:a.heroName,victim:old.victim.heroName,lane:old.lane,why:'timeout',seen:!!old.seen,vhp:Math.round(old.victim.hp/old.victim.maxHp*100)});GANK.delete(a);a.gankCD=s.time+45-20*iqOf(a);}
  if(!GANK.get(a)){const st=styleOf(a.team),gate=150+45*iqOf(a);if(a.hp>a.maxHp*.6&&s.time>gate&&(!(a.gankCD>s.time)||!a.team&&s.callJg&&s.callJg.until>s.time)){let best=null,bestL=0,score=1.4-(pol.jungle==='gank'?.6:pol.jungle==='farm'?-.6:0);for(let l=0;l<3;l++){const victim=s.actors.find(b=>b.team!==a.team&&live(b)&&laneRoles(l).includes(b.role)&&b.task?.kind==='lane');if(!victim)continue;const ally=s.actors.find(b=>b.team===a.team&&live(b)&&laneRoles(l).includes(b.role)&&dist(b,victim)<240);const vt=ownTower(victim.team,l),off=vt?dist(victim,vt):300,minOff=l===1?55:85;if(off<minOff)continue;let v=Math.min(1.2,(off-minOff)/200)+(l===1?.4:0)+Math.max(0,laneLead(victim,l))*.2+(victim.hp<victim.maxHp*.6?1:0)+(ally?1:0)+((a.team?victim.y<victim.x-80:victim.y>victim.x-80)?.5:0)-(s.wards.some(w=>w.team===victim.team&&w.until>s.time&&dist(w,victim)<170)?1:0)+(l===2?.7:0)+(spell(victim,'flash')?0:.7)-dist(a,victim)/600;if(FOCUS_LANE[st.focus]===l)v+=.5;v+=window.PLAYS?.gankBonus?.(a,victim,l)||0;if(!a.team&&s.callJg&&s.callJg.until>s.time&&s.callJg.lane===l)v+=1.4;if(v>score){score=v;best=victim;bestL=l;}}if(best){GANK.set(a,{victim:best,until:s.time+35,lane:LANE_NAME[bestL]});try{window.PLAYS?.onGank?.(a,best,bestL);}catch{}}}}
@@ -285,7 +285,7 @@ function laneBehaviour(a,lane,dt,stance){const s=state,foesHero=s.actors.filter(
  moveTo(a,spot,dt,6);}
 function ownNearTowerOf(a,lane){const s=state,tw=s.structures.find(t=>t.kind==='tower'&&t.team!==a.team&&t.lane===lane&&t.hp>0&&dist(t,a)<220);return !tw||s.minions.some(m=>m.team===a.team&&live(m)&&dist(m,tw)<100);}
 function groupPoint(t,lane){const f=front(t,lane);if(f)return stand({team:t},lane,40);const tw=ownTower(t,lane);return{x:tw.x,y:tw.y};}
-function skirmish(a,dt,r=240,force=false){if(state.time<40)return false;const s=state,foes=s.actors.filter(b=>b.team!==a.team&&live(b)&&dist(a,b)<r&&sees(a.team,b));if(!foes.length)return false;const fv=fightValue(a,r);const bar=effectiveBar(a.team)*(T().plan[a.team].mode==='objective'?.92:1);
+function skirmish(a,dt,r=240,force=false){if(state.time<40)return false;const s=state,foes=s.actors.filter(b=>b.team!==a.team&&live(b)&&dist(a,b)<r&&sees(a.team,b));if(!foes.length)return false;const fv=fightValue(a,r);const bar=effectiveBar(a.team,a)*(T().plan[a.team].mode==='objective'?.92:1);
  const engaged=foes.some(f=>FOCUS.get(f)===a&&dist(f,a)<f.range+10),contest=T().plan[a.team].mode==='objective'||T().plan[a.team].mode==='defend'||T().plan[a.team].mode==='siege';
  const cu=caution(a);if(force&&fv>=.7||fv>=bar*(contest?1:1.2)*cu||engaged&&fv>=.9||foes.some(f=>f.hp<f.maxHp*.25)&&fv>cu){const tgt=chooseTarget(a,foes.filter(f=>dist(a,f)<r));if(tgt.recalling&&dist(a,tgt)>a.range+25&&!contest&&!force)return false;FOCUS.set(a,tgt);if(underEnemyTower(a,tgt)&&fv<1.5*cu&&!(T().plan[a.team].mode==='siege'))return false;useSpells(a,tgt,true);bSkill(a,tgt);attack(a,tgt);moveTo(a,tgt,dt,a.range*.85,fv>=1.7);return true;}
  escape(a,foes);const safe=ownTower(a.team,laneOf(a));moveTo(a,safe,dt);return true;}
@@ -322,7 +322,7 @@ bHero=function(a,dt){const s=state;syncSpells(a);
  if(task.kind==='lvl1'){if(foesNear.length&&skirmish(a,dt,a.range+90))return;const p=lvl1Point(a);moveTo(a,p,dt,8);
   const st=styleOf(a.team);if(st.lvl1==='invade'&&!st._inv&&s.actors.filter(b=>b.team===a.team&&live(b)&&dist(b,p)<90).length>=3){st._inv=1;story('invade',a.team,{}); }return;}
  if(task.kind==='jungle'){if(foesNear.length&&skirmish(a,dt,a.range+80))return;jungle(a,dt);return;}
- if(task.kind==='lane'){laneBehaviour(a,bLane(a.role),dt,(a.team?'safe':policy().lane)==='trade'?'trade':'safe');return;}
+ if(task.kind==='lane'){laneBehaviour(a,bLane(a.role),dt,(a.player?policy().lane:'safe')==='trade'?'trade':'safe');return;}
  if(task.kind==='objective'){const o=task.obj;if(foesNear.length&&skirmish(a,dt))return;if(a.role===1||a.role===4){sweep(a);const w=wardTarget(a,o);if(w&&dist(a,w)<120&&!o.alive){moveTo(a,w,dt);if(dist(a,w)<30)placeWard(a,w);return;}}
   const p=o.alive?o:pitFront(a.team,o);moveTo(a,{x:p.x+((a.role%3)-1)*14,y:p.y+((a.role>>1)-1)*12},dt,o.alive?40:8);return;}
  if(task.kind==='hunt'){const v=task.target;if(foesNear.length&&skirmish(a,dt,300,true))return;if(v&&live(v)){moveTo(a,v,dt,a.range*.8);return;}}
@@ -368,7 +368,7 @@ function kitHint(p){const k=ROSTER[p.heroIndex]?.kit;if(!k)return '';const mob=[
  return {mob:mob?`${mob[0].toUpperCase()}「${mob[0]==='q'?ROSTER[p.heroIndex].skill:mob[1].name}」`:'',cc:cc?`${cc[0].toUpperCase()}「${cc[0]==='q'?ROSTER[p.heroIndex].skill:cc[1].name}」`:''};}
 function talentHas(id){try{const c=window.CAREER?.data;return !!(c&&window.TALENT?.has(c,id));}catch{return false;}}
 function track(type,choice,secs=18){const s=state,pe=s.personal;s.momentTrack={type,choice,until:s.time+secs,k:pe.kills,d:pe.deaths,a:pe.assists||0,tw:s.structures.filter(t=>t.team===1&&t.hp<=0).length,gk:s.kills[0],gd:s.kills[1]};}
-const MOMENT_TXT={gankWarn:'面對對方打野',jgOffer:'配合我方打野',laneWin:'對線優勢',laneLose:'對線劣勢',invaded:'野區被入侵'};
+const MOMENT_TXT={midMissing:'對方中路消失',wardHunt:'抓做視野的人',gankWarn:'面對對方打野',jgOffer:'配合我方打野',laneWin:'對線優勢',laneLose:'對線劣勢',invaded:'野區被入侵'};
 function resolveMoment(){const s=state,m=s.momentTrack;if(!m||s.time<m.until)return;s.momentTrack=null;const pe=s.personal;
  const dk=pe.kills-m.k,dd=pe.deaths-m.d,da=(pe.assists||0)-m.a,dt=s.structures.filter(t=>t.team===1&&t.hp<=0).length-m.tw,tk=s.kills[0]-m.gk,td=s.kills[1]-m.gd;
  const score=dk+da*.6+dt*.8-dd*1.2+(tk-td)*.3,result=score>.25?'win':score<-.25?'lose':'even';
@@ -376,40 +376,57 @@ function resolveMoment(){const s=state,m=s.momentTrack;if(!m||s.time<m.until)ret
  const sum=`${MOMENT_TXT[m.type]||'決策'}（${m.choice}）：${dk?`擊殺 +${dk} `:''}${da?`助攻 +${da} `:''}${dt?`推掉 ${dt} 座塔 `:''}${dd?`陣亡 ${dd} 次 `:''}${!dk&&!da&&!dt&&!dd?'雙方沒有交換':''}`;
  try{log(`決策結果　${sum}`);}catch{}story('moment',0,{result,choice:m.choice,label:MOMENT_TXT[m.type]||''});}
 function keyMoment(s,p){if(s.time<150||s.time>1500||(s.eventCount||0)>=10||s.time<840&&(s.eventCount||0)>=5||s.lastMomentAt>s.time-45)return false;const lane=bLane(p.role),cnt=s.momentCount||(s.momentCount={}),cd=k=>s.macroEvents[k]>s.time||(cnt[k]||0)>=2,mark=(k,t)=>{s.macroEvents[k]=s.time+t;if(k!=='lane')cnt[k]=(cnt[k]||0)+1;};
+ const OD=(...x)=>window.ODDS?.OD?.(...x)||null;
  const foe=laneFoe(p),hint=kitHint(p),inLane=(p.task?.kind||'lane')==='lane'&&!p.recalling&&distToLane(p,lane)<80&&dist(p,bBase(0))>200,foeHere=foe&&dist(foe,p)<300&&distToLane(foe,lane)<90,mast=Math.round(heroes[p.heroIndex]?.mastery||0),ward=s.wards.some(w=>!w.team&&w.until>s.time&&dist(w,p)<320);
  // ① 對方打野來抓你
  const ejg=s.actors.find(b=>b.team===1&&b.role===1&&live(b)),eg=ejg&&GANK.get(ejg);
  const jg0=s.actors.find(b=>b.team===0&&b.role===1&&live(b)&&!b.player);
  if(inLane&&eg&&eg.victim===p&&!eg.arrived&&dist(ejg,p)<520&&!cd('gw')&&s.actors.filter(b=>b.team===1&&live(b)&&dist(b,p)<400).length<=2){mark('gw',150);const seen=sees(0,ejg),deep=dist(p,ownTower(0,lane))>140;
   showDecision('gankWarn',seen?`對方打野 ${ejg.heroName} 正往你這裡移動！`:`對方打野 ${ejg.heroName} 已經從視野消失`,`${seen?'隊友看到他從河道靠近。':'他最後出現的位置離你不遠。'}${deep?'你的兵線壓得很深，離塔有段距離。':'你離自家塔不遠。'}${ward?'附近有我方的眼。':'附近沒有我方視野。'}${talentHas('survive')?'你有天賦【極限求生】。':''}${hint.mob?`你有位移技 ${hint.mob}，被抓時比較好逃。`:''}`,[
-   {name:'立刻退回塔下',desc:'放掉這波兵，安全第一。',run:()=>{p.orderBackUntil=s.time+14;track('gankWarn','退回塔下',16);story('call',0,{label:`${p.heroName} 察覺危險，退回塔下`});}},
-   {name:'叫我方打野來反蹲',desc:'我方打野趕到你身邊，對方真的來就打 2 對 2。',run:()=>{s.jgGuard={until:s.time+22};if(jg0){GANK.delete(jg0);}track('gankWarn','打野反蹲',22);story('call',0,{label:`${p.heroName} 呼叫打野反蹲`});}},
-   {name:'繼續壓線，賭他不來',desc:'多吃這波兵和經驗；被抓到就很危險。',run:()=>{track('gankWarn','賭他不來',16);}}]);return true;}
+   {name:'立刻退回塔下',desc:'放掉這波兵，安全第一。',odds:OD('gwBack',ownTower(0,lane),'skirm',{bring:[p,ejg]},'safe','被抓時我方不吃虧'),run:()=>{p.orderBackUntil=s.time+14;track('gankWarn','退回塔下',16);story('call',0,{label:`${p.heroName} 察覺危險，退回塔下`});}},
+   {name:'叫我方打野來反蹲',desc:'我方打野趕到你身邊，對方真的來就打 2 對 2。',odds:jg0?OD('gwJg',p,'skirm',{bring:[p,ejg,jg0]},'std','2 對 2 我方贏'):{note:'我方打野不在'},run:()=>{s.jgGuard={until:s.time+22};if(jg0){GANK.delete(jg0);}track('gankWarn','打野反蹲',22);story('call',0,{label:`${p.heroName} 呼叫打野反蹲`});}},
+   {name:'繼續壓線，賭他不來',desc:'多吃這波兵和經驗；被抓到就很危險。',odds:OD('gwStay',p,'skirm',{bring:[p,ejg]},'risky','被抓時還能反打'),run:()=>{track('gankWarn','賭他不來',16);}}]);return true;}
  // ② 我方打野要來 gank 你的對手
  const jg=s.actors.find(b=>b.team===0&&b.role===1&&live(b)),og=jg&&GANK.get(jg);
  if(inLane&&foeHere&&og&&og.victim===foe&&!og.arrived&&dist(jg,foe)<520&&!cd('jo')&&p.hp>p.maxHp*.45&&s.actors.filter(b=>b.team===1&&live(b)&&dist(b,p)<400).length<=2){mark('jo',150);
   showDecision('jgOffer',`打野 ${jg.heroName} 要來抓 ${foe.heroName}`,`對手血量 ${Math.round(foe.hp/foe.maxHp*100)}%、你 ${Math.round(p.hp/p.maxHp*100)}%。${hint.cc?`你的 ${hint.cc} 可以先手控場。`:'你沒有控場技，要靠打野先手。'}英雄熟練度 ${mast}。`,[
-   {name:'配合開戰',desc:'打野一到就一起上，集火對手。',run:()=>{p.engageUntil=s.time+20;p.engageTarget=foe;track('jgOffer','配合開戰',16);}},
-   {name:'叫他去別路',desc:'你這波不方便，讓打野去幫其他隊友。',run:()=>{GANK.delete(jg);jg.gankCD=s.time+8;track('jgOffer','叫他去別路',20);}}]);return true;}
+   {name:'配合開戰',desc:'打野一到就一起上，集火對手。',odds:OD('joGo',foe,'skirm',{bring:[p,jg]},'std','2 打 1 拿下對手'),run:()=>{p.engageUntil=s.time+20;p.engageTarget=foe;track('jgOffer','配合開戰',16);}},
+   {name:'叫他去別路',desc:'你這波不方便，讓打野去幫其他隊友。',odds:{note:'這波不打'},run:()=>{GANK.delete(jg);jg.gankCD=s.time+8;track('jgOffer','叫他去別路',20);}}]);return true;}
  // ③ 對線大優勢
  const lead=laneLead(p,lane);
  if(inLane&&foeHere&&lead>.3&&foe.hp<foe.maxHp*.45&&p.hp>p.maxHp*.6&&!foe.recalling&&s.time<900&&!cd('lw')&&!cd('lane')){mark('lw',300);mark('lane',150);const et=s.structures.find(t=>t.kind==='tower'&&t.team===1&&t.lane===lane&&t.hp>0&&t.tier===0);
   showDecision('laneWin',`你在${ROLE_ZH[p.role]}壓制住 ${foe.heroName}`,`對手只剩 ${Math.round(foe.hp/foe.maxHp*100)}% 血量，你 ${Math.round(p.hp/p.maxHp*100)}%。${hint.mob?`你的 ${hint.mob} 是突進技，越塔追殺比較有把握。`:'你沒有突進技，越塔要冒被塔打的風險。'}${talentHas('duel')?'你有天賦【單挑王】。':''}`,[
-   {name:'越塔強殺',desc:'頂著防禦塔追進去，殺了就賺，失敗就送。',run:()=>{p.diveUntil=s.time+10;track('laneWin','越塔強殺',14);}},
-   {name:'推線拿塔皮',desc:'不追人，把兵推進塔下，換防禦塔傷害。',run:()=>{if(et)order('push',{x:et.x,y:et.y},30);log('你把兵線推進塔下，準備拿塔皮。');track('laneWin','推線拿塔',30);}},
-   {name:'去支援其他路',desc:'對手回城的空檔去幫隊友，擴大全隊優勢。',run:()=>{const ally=s.actors.filter(b=>b.team===0&&!b.player&&live(b)&&b.role!==1).sort((x,y)=>laneLead(x,bLane(x.role))-laneLead(y,bLane(y.role)))[0];if(ally){order('support',{x:ally.x,y:ally.y},35);s.order.track=ally;log(`你離開兵線，去支援 ${ally.heroName}。`);}track('laneWin','去支援',35);}}]);return true;}
+   {name:'越塔強殺',desc:'頂著防禦塔追進去，殺了就賺，失敗就送。',odds:OD('lwDive',foe,'skirm',{bring:[p]},'risky','越塔拿下對手',{secs:12}),run:()=>{p.diveUntil=s.time+10;track('laneWin','越塔強殺',14);}},
+   {name:'推線拿塔皮',desc:'不追人，把兵推進塔下，換防禦塔傷害。',odds:{note:'穩拿塔皮經濟'},run:()=>{if(et)order('push',{x:et.x,y:et.y},30);log('你把兵線推進塔下，準備拿塔皮。');track('laneWin','推線拿塔',30);}},
+   {name:'去支援其他路',desc:'對手回城的空檔去幫隊友，擴大全隊優勢。',odds:(()=>{const al=s.actors.filter(b=>b.team===0&&!b.player&&live(b)&&b.role!==1).sort((x,y)=>laneLead(x,bLane(x.role))-laneLead(y,bLane(y.role)))[0];return al?OD('lwHelp',al,'skirm',{bring:[p]},'std','支援那一路打贏',{secs:30}):{note:'沒有隊友需要幫忙'};})(),run:()=>{const ally=s.actors.filter(b=>b.team===0&&!b.player&&live(b)&&b.role!==1).sort((x,y)=>laneLead(x,bLane(x.role))-laneLead(y,bLane(y.role)))[0];if(ally){order('support',{x:ally.x,y:ally.y},35);s.order.track=ally;log(`你離開兵線，去支援 ${ally.heroName}。`);}track('laneWin','去支援',35);}}]);return true;}
  // ④ 對線被壓制
  if(inLane&&foeHere&&lead<-.35&&p.hp<p.maxHp*.7&&s.time>200&&s.time<900&&!cd('ll')&&!cd('lane')){mark('ll',360);mark('lane',150);
   showDecision('laneLose',`你在${ROLE_ZH[p.role]}被 ${foe.heroName} 壓著打`,`對位上你比較吃虧（熟練度 ${mast}）。${talentHas('slow')?'你有【慢熱】，前期本來就比較辛苦。':''}要怎麼撐過去？`,[
-   {name:'請打野來幫忙',desc:'接下來 45 秒，打野優先來你這路。',run:()=>{s.callJg={lane,until:s.time+45};track('laneLose','請打野幫忙',40);story('call',0,{label:`${p.heroName} 請打野支援${LANE_NAME[lane]}`});}},
-   {name:'退塔下穩補',desc:'不換血，在塔下慢慢補兵，等後期。',run:()=>{p.orderBackUntil=s.time+40;track('laneLose','塔下穩補',40);}},
-   {name:'離開這條線去支援',desc:'這條線打不過，去別的地方找機會。',run:()=>{const o=s.dragon.alive?s.dragon:{x:400,y:320};order('support',{x:o.x,y:o.y},40);log('你離開兵線，往河道找機會。');track('laneLose','去支援',40);}}]);return true;}
+   {name:'請打野來幫忙',desc:'接下來 45 秒，打野優先來你這路。',odds:jg?OD('llJg',p,'skirm',{bring:[p,jg]},'std','打野來時我方贏',{secs:45}):{note:'我方打野不在'},run:()=>{s.callJg={lane,until:s.time+45};track('laneLose','請打野幫忙',40);story('call',0,{label:`${p.heroName} 請打野支援${LANE_NAME[lane]}`});}},
+   {name:'退塔下穩補',desc:'不換血，在塔下慢慢補兵，等後期。',odds:OD('llBack',ownTower(0,lane),'skirm',{bring:[p,foe]},'safe','塔下交手不吃虧',{secs:40}),run:()=>{p.orderBackUntil=s.time+40;track('laneLose','塔下穩補',40);}},
+   {name:'離開這條線去支援',desc:'這條線打不過，去別的地方找機會。',odds:{note:'換個地方找機會'},run:()=>{const o=s.dragon.alive?s.dragon:{x:400,y:320};order('support',{x:o.x,y:o.y},40);log('你離開兵線，往河道找機會。');track('laneLose','去支援',40);}}]);return true;}
  // ⑤ 自家野區被入侵
  const inv=s.actors.filter(b=>b.team===1&&live(b)&&sees(0,b)&&(b.y>b.x-80)&&dist(b,bBase(1))>300).filter(b=>s.camps.some(c=>c.home===0&&dist(c,b)<170));
  if((inv.length>=2||inv.some(b=>b.role===1))&&inv.length<=3&&s.actors.filter(b=>b.team===1&&live(b)&&dist(b,inv[0])<450).length<=3&&p.hp>p.maxHp*.45&&s.time<1500&&jg&&dist(jg,inv[0])<300&&dist(p,inv[0])<480&&!cd('iv')){mark('iv',300);
   showDecision('invaded',`${inv.map(b=>b.heroName).join('、')} 闖進我方野區`,`我方打野 ${jg.heroName} 就在附近，可能要開打。你離那裡大約 ${Math.round(dist(p,inv[0]))} 碼。`,[
-   {name:'過去支援打野',desc:'放下兵線，去野區幫忙。',run:()=>{order('support',{x:jg.x,y:jg.y},25);s.order.track=jg;log(`你放下兵線，趕去野區支援 ${jg.heroName}。`);track('invaded','支援打野',25);}},
-   {name:'留在線上',desc:'相信打野自己處理，你繼續發育。',run:()=>{track('invaded','留在線上',25);}}]);return true;}
+   {name:'過去支援打野',desc:'放下兵線，去野區幫忙。',odds:OD('ivGo',inv[0],'skirm',{bring:[p,jg]},'std','野區這波我方贏',{secs:25}),run:()=>{order('support',{x:jg.x,y:jg.y},25);s.order.track=jg;log(`你放下兵線，趕去野區支援 ${jg.heroName}。`);track('invaded','支援打野',25);}},
+   {name:'留在線上',desc:'相信打野自己處理，你繼續發育。',odds:OD('ivStay',inv[0],'skirm',{bring:[jg],away:[p]},'safe','打野自己撐住',{secs:25}),run:()=>{track('invaded','留在線上',25);}}]);return true;}
+ // ⑥ 1.07 對方中路消失了（推完兵正往你這路游走）
+ const emid=s.actors.find(b=>b.team===1&&b.role===2&&live(b));
+ if(inLane&&lane!==1&&emid&&emid.play?.kind==='roam'&&emid.play.lane===lane&&dist(emid,p)>240&&dist(emid,p)<720&&!sees(0,emid)&&p.hp>p.maxHp*.4&&!cd('mm')){mark('mm',240);
+  const mid={x:(p.x+emid.x)/2,y:(p.y+emid.y)/2},spot=wardTarget(p,mid),grp=[p,emid,foeHere?foe:null].filter(Boolean);
+  showDecision('midMissing',`對方中路 ${emid.heroName} 從中路消失了！`,`${emid.heroName} 推完兵就不見了，很可能往${ROLE_ZH[p.role]}來。${foeHere?`你的對手 ${foe.heroName} 也在旁邊。`:''}${ward?'附近有我方的眼。':'這附近沒有視野。'}`,[
+   {name:'先退到塔下',desc:'寧可少吃一波兵，也不給對方 2 打 1 的機會。',odds:OD('mmBack',ownTower(0,lane),'skirm',{bring:grp},'safe','被包夾時我方不吃虧',{secs:18}),run:()=>{p.orderBackUntil=s.time+16;track('midMissing','退到塔下',16);story('call',0,{label:`${p.heroName}：對面中路不見了，先退`});}},
+   {name:'插眼看他從哪來',desc:'往河道丟一顆眼，看到人再決定。',odds:OD('mmWard',p,'skirm',{bring:grp},'std','看到他之後打得過',{secs:18}),run:()=>{if(spot&&(p.wardCharges||0)>0){p.wardCharges--;s.wards.push({x:spot.x,y:spot.y,team:0,until:s.time+90,owner:p.role});log('你往河道丟了一顆眼。');}track('midMissing','插眼看',18);}},
+   {name:'叫打野一起反蹲',desc:'打野過來埋伏，對方真的來就打 2 對 2。',odds:jg0?OD('mmJg',p,'skirm',{bring:[...grp,jg0]},'risky','反蹲成功',{secs:22}):{note:'我方打野不在'},run:()=>{s.jgGuard={until:s.time+22};if(jg0)GANK.delete(jg0);track('midMissing','打野反蹲',22);story('call',0,{label:`${p.heroName} 叫打野來反蹲對面中路`});}}]);return true;}
+ // ⑦ 1.07 對方輔助／打野正在做視野（你看得到他）
+ const wv=s.actors.find(b=>b.team===1&&live(b)&&b.play?.kind==='ward'&&b.play.pt&&dist(b.play.pt,p)<650&&sees(0,b));
+ if(wv&&[1,2,4].includes(p.role)&&p.hp>p.maxHp*.6&&!s.actors.some(b=>b.team===1&&b!==wv&&live(b)&&dist(b,wv)<350)&&s.time>240&&!cd('wh')){mark('wh',300);
+  const pt=wv.play.pt,d=dist(pt,p)||1,hide={x:pt.x+(p.x-pt.x)/d*55,y:pt.y+(p.y-pt.y)/d*55};
+  showDecision('wardHunt',`${wv.heroName} 一個人在做視野`,`對方的${ROLE_ZH[wv.role]} ${wv.heroName} 正往河道插眼，身邊沒有隊友。你離那裡約 ${Math.round(dist(pt,p))} 碼。`,[
+   {name:'先躲進草叢埋伏他',desc:'繞到他要插眼的位置旁邊蹲著，等他走進來。',odds:OD('whLurk',pt,'skirm',{bring:[p,wv]},'std','抓到他',{secs:20}),run:()=>{p.play={kind:'lurk',pt:hide,until:s.time+18,from:s.time};story('call',0,{label:`${p.heroName} 去草叢蹲 ${wv.heroName}`});}},
+   {name:'跟過去把眼清掉',desc:'不打架，跟在後面把他的眼排掉。',odds:{note:'拿回這一帶的視野'},run:()=>{order('support',{x:pt.x,y:pt.y},14);s.wards=s.wards.filter(w=>!(w.team===1&&dist(w,pt)<140));}},
+   {name:'不理他，做自己的事',desc:'視野讓給他，你照原本的節奏。',odds:{note:'照原本的節奏'},run:()=>{}}]);return true;}
  return false;}
 events=function(){const s=state,p=s.actors.find(a=>a.player);if(!p||s.decision||s.done)return;resolveMoment();if(s.lastMomentAt>s.time-45&&s.time>60)return;
  if(!s.macroEvents.lvl1&&s.time>1.5&&s.time<40){s.macroEvents.lvl1=true;const st=styleOf(0),es=styleOf(1);
@@ -452,13 +469,19 @@ const baseFinish=finish;finish=function(){const s=state;baseFinish();if(s&&s.sur
 function loadPolicy(){try{return JSON.parse(localStorage.getItem('esports-policy')||'null');}catch(e){return null;}}
 function savePolicy(p){try{localStorage.setItem('esports-policy',JSON.stringify(p));}catch(e){}}
 const POLICY_UI=[['lane','對線',[['safe','穩健控線'],['trade','積極換血']]],['jungle','打野',[['farm','穩定刷野'],['balanced','均衡'],['gank','積極抓人']]],['objective','物件',[['priority','物件優先'],['flex','隨機應變']]],['macro','中後期',[['group','抱團推進'],['41','四一分推'],['131','一三一']]],['fight','團戰',[['safe','保守'],['balanced','均衡'],['aggressive','激進']]]];
-function buildPolicyPanel(){if(!document.body||document.querySelector('#tactics'))return;const log=document.querySelector('#log');if(!log?.parentNode)return;const box=document.createElement('details');box.id='tactics';box.className='tactics';box.open=true;
- box.innerHTML='<summary>戰術方針 <small>隨時可改，AI 隊友會照著做</small></summary>'+POLICY_UI.map(([k,label,opts])=>`<div class="tactic-row"><span>${label}</span><div>${opts.map(([v,t])=>`<button type="button" class="quiet" data-policy="${k}" data-value="${v}">${t}</button>`).join('')}</div></div>`).join('');
- const bar=document.querySelector('#match .overview-bar')||document.querySelector('#match .mapfoot');if(bar)bar.after(box);else log.parentNode.insertBefore(box,log);box.addEventListener('click',e=>{const b=e.target.closest('[data-policy]');if(!b||!state)return;state.policy={...policy(),[b.dataset.policy]:b.dataset.value};savePolicy(state.policy);refreshPolicy();});}
-function refreshPolicy(){const p=policy();document.querySelectorAll?.('[data-policy]').forEach(b=>b.classList.toggle('selected',p[b.dataset.policy]===b.dataset.value));}
+const STYLE_UI={0:[['auto','照本性'],['tp','留傳送支援'],['split','單帶分推']],1:[['auto','照本性'],['lurk','愛蹲草抓人'],['vision','重視野']],2:[['auto','照本性'],['lane','守線發育'],['roam','推完找機會游走']],3:[['auto','照本性'],['safe','穩穩發育'],['roam','跟輔助游走']],4:[['auto','照本性'],['follow','跟著射手'],['vision','積極做視野'],['lurk','去蹲草抓人']]};
+function policyRows(role){const rows=[['style','本場打法',STYLE_UI[role]||STYLE_UI[2]]];if(role===1)rows.push(['jungle','打野節奏',[['farm','穩定刷野'],['balanced','均衡'],['gank','積極抓人']]]);else rows.push(['lane','對線',[['safe','穩健控線'],['trade','積極換血']]]);rows.push(['fight','團戰站位',[['safe','保守'],['balanced','均衡'],['aggressive','激進']]]);return rows;}
+function buildPolicyPanel(){if(!document.body)return;const log=document.querySelector('#log');if(!log?.parentNode)return;let box=document.querySelector('#tactics');
+ if(!box){box=document.createElement('details');box.id='tactics';box.className='tactics';box.open=true;const bar=document.querySelector('#match .overview-bar')||document.querySelector('#match .mapfoot');if(bar)bar.after(box);else log.parentNode.insertBefore(box,log);
+  box.addEventListener('click',e=>{const b=e.target.closest('[data-policy]');if(!b||!state)return;state.policy={...policy(),[b.dataset.policy]:b.dataset.value};savePolicy(state.policy);refreshPolicy();});}
+ const role=T()?.actors?.find(a=>a.player)?.role??2;box.dataset.role=role;
+ box.innerHTML='<summary>我的打法 <small>只影響你自己；隊友照自己的個性與教練方針</small></summary>'+policyRows(role).map(([k,label,opts])=>`<div class="tactic-row"><span>${label}</span><div>${opts.map(([v,t])=>`<button type="button" class="quiet" data-policy="${k}" data-value="${v}">${t}</button>`).join('')}</div></div>`).join('')+'<p class="tactic-fit"></p>';}
+function refreshPolicy(){const p=policy(),role=+(document.querySelector('#tactics')?.dataset.role??2),ok=(STYLE_UI[role]||[]).some(([v])=>v===p.style);
+ document.querySelectorAll?.('[data-policy]').forEach(b=>b.classList.toggle('selected',b.dataset.policy==='style'?(ok?p.style:'auto')===b.dataset.value:p[b.dataset.policy]===b.dataset.value));
+ const f=document.querySelector('#tactics .tactic-fit');if(f){try{f.innerHTML=window.PLAYS?.fitText?.()||'';}catch{f.textContent='';}}}
 // fight bar adjusted by the player's one-off decisions
 const fb=fightBar;
-function effectiveBar(t){const s=state;if(t)return 1;let v=fb(0);if(s.policyFightBoost>s.time)v=.82;if(s.policyFightSafe>s.time)v=1.3;return v;}
+function effectiveBar(t,a){const s=state;if(t)return 1;let v=a&&!a.player?1:fb(0);if(s.policyFightBoost>s.time)v=.82;if(s.policyFightSafe>s.time)v=1.3;return v;}
 // ---------- 召喚師技能：依英雄技能推薦，比賽前（BP 畫面）才選，不選就用推薦 ----------
 // 推薦規則看英雄的職業與特性（DRAFT.TAGS）；兩個都照推薦 +2% 強度、一個 +1%。
 function recSpells(i){const T=window.DRAFT?.TAGS?.[i],r=ROSTER[i].role,cls=T?.cls||'',t=T?.tags||[],h=x=>t.includes(x);

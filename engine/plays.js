@@ -24,8 +24,22 @@ function traits(a){const id=identity(a),b=ROLE_BASE[a.role]||ROLE_BASE[2],h=hash
  for(const k of ['roam','vision','lurk','tp']){const r=((h>>>(i*8))&255)/255;t[k]=b[k]+(r-.5)*.5;i++;}
  for(const ab of id.abil)for(const [k,v] of Object.entries(ABIL[ab]||{}))t[k]+=v;
  if(hasMob(a))t.roam+=.08;if(hasCC(a))t.lurk+=.08;
+ if(a.player){const xp=window.CAREER?.data?.styleXP||{};for(const [st,k] of Object.entries(STYLE_TRAIT))if(xp[st])t[k]+=Math.min(.25,xp[st]*.015);}
  for(const k in t)t[k]=Math.max(.08,Math.min(.95,t[k]));return {t,key:id.key};}
-function pers(a){if(a.pers)return a.pers;const {t,key}=traits(a),f=()=>1+(R()-.5)*.16;a.pers={roam:t.roam*f(),vision:t.vision*f(),lurk:t.lurk*f(),tp:t.tp*f(),base:t,key};return a.pers;}
+function persBase(a){if(a.pers)return a.pers;const {t,key}=traits(a),f=()=>1+(R()-.5)*.16;a.pers={roam:t.roam*f(),vision:t.vision*f(),lurk:t.lurk*f(),tp:t.tp*f(),base:t,key};return a.pers;}
+// ---------- 1.07 我的打法：只影響你自己；跟本性不合時效果打折 ----------
+const STYLE_TRAIT={tp:'tp',roam:'roam',lurk:'lurk',vision:'vision'};
+const STYLE_T={tp:{tp:.9},split:{tp:.12,roam:.1},lurk:{lurk:.85},vision:{vision:.9},lane:{roam:.08},roam:{roam:.85},safe:{roam:.08,lurk:.08},follow:{roam:.1,lurk:.1}};
+const STYLE_ROLE={0:['tp','split'],1:['lurk','vision'],2:['lane','roam'],3:['safe','roam'],4:['follow','vision','lurk']};
+const fitOf=b=>Math.max(.45,Math.min(1,.45+b*.9));
+function myStyle(a){const st=M()?.policy?.()?.style;return st&&st!=='auto'&&(STYLE_ROLE[a.role]||[]).includes(st)?st:'auto';}
+function pers(a){const b=persBase(a);if(!a.player)return b;const st=myStyle(a);if(st==='auto')return b;const e={...b};
+ for(const [k,tg] of Object.entries(STYLE_T[st]||{}))e[k]=tg>b[k]?b[k]+(tg-b[k])*fitOf(b.base[k]):tg;e.style=st;return e;}
+function fitText(){const s=state,a=s?.actors?.find(x=>x.player);if(!a)return '';const st=myStyle(a);if(st==='auto')return '照你的本性打：'+natureLine(a);
+ const ups=Object.entries(STYLE_T[st]||{}).filter(([k,tg])=>tg>persBase(a).base[k]);if(!ups.length)return '這個打法很好上手。';
+ const f=Math.min(...ups.map(([k])=>fitOf(persBase(a).base[k])));return f>=.8?'✓ 這個打法合你的本性，可以完整發揮。':f>=.6?'△ 跟你的本性有點距離，效果打折；常用會慢慢習慣。':'✗ 跟你的本性很不合，效果大打折扣；常用才會慢慢改變。';}
+const TNAME={roam:'愛游走',vision:'重視野',lurk:'愛蹲草',tp:'愛傳送支援'};
+function natureLine(a){const b=persBase(a).base,rb=ROLE_BASE[a.role]||ROLE_BASE[2];const top=Object.keys(TNAME).map(k=>[k,b[k]-rb[k]]).sort((x,y)=>y[1]-x[1])[0];return top&&top[1]>.08?TNAME[top[0]]:'各方面平均';}
 function ops(a){const k=(typeof ROSTER!=='undefined'?ROSTER:window.ROSTER)?.[a.heroIndex]?.kit;if(!k)return [];return ['s','w','e'].flatMap(x=>k[x]?.ops||[]);}
 const hasCC=a=>ops(a).some(o=>['stun','root','up'].includes(o[0]));
 const hasMob=a=>ops(a).some(o=>o[0]==='dash'||o[0]==='blink');
@@ -90,7 +104,7 @@ function run(a,dt,foesNear){const s=state,m=M(),pl=a.play,e=1-a.team;
   if(v){const mine=team(s,a.team).filter(b=>D(b,a)<320).length,theirs=team(s,e).filter(b=>D(b,v)<320).length;
    if(mine>=theirs||v.hp<v.maxHp*.55){const why=v.play?.kind==='ward'?'ward':v.task?.kind==='jungle'?'jungle':'face';
     v.caughtUntil=s.time+1.4;v.slowUntil=s.time+1.6;v.slowPct=Math.max(v.slowPct||0,.3);
-    say('ambush',a,{victim:v.heroName,vi:s.actors.indexOf(v),label:why,lane:region(a)});
+    say('ambush',a,{victim:v.heroName,vi:s.actors.indexOf(v),label:why,lane:region(a)});tally(a,'ambush');
     for(const b of team(s,a.team))if(b!==a&&!b.player&&D(b,a)<420&&!b.play)b.play={kind:'catch',target:v,until:s.time+8,from:s.time};
     a.play={kind:'catch',target:v,until:s.time+9,from:s.time};return run(a,dt,foesNear);}
    endPlay(a);return false;}
@@ -100,18 +114,38 @@ function hero(a,dt,task,foesNear){const s=state;if(!s||s.time<60||!M()?.moveTo)r
  if(a.play&&(s.time>a.play.until||a.recalling)){endPlay(a);}
  if(a.play)return run(a,dt,foesNear);
  // 傳送每秒判斷一次（戰鬥很短，錯過就沒了）；其他打法 2.5～5 秒想一次
- if(s.time>(a.tpNext||0)&&!a.recalling&&a.hp>a.maxHp*.5){a.tpNext=s.time+1;const p=pers(a),pl=tp(s,a,p,M().iqOf(a));if(pl)return true;}
+ if(s.time>(a.tpNext||0)&&!a.recalling&&a.hp>a.maxHp*.5){a.tpNext=s.time+1;const p=pers(a),pl=tp(s,a,p,M().iqOf(a));if(pl){tally(a,'tp');return true;}}
+ // 你選「單帶分推」：中後期沒事就自己去帶線
+ if(a.player&&myStyle(a)==='split'&&s.time>840&&a.task?.kind==='group'&&!(a.splitUntil>s.time)&&!foesNear.length){a.splitUntil=s.time+40;a.splitLane=0;tally(a,'split');}
  if((a.playNext||0)>s.time)return false;a.playNext=s.time+2.5+R()*2.5;
  if(a.hp<a.maxHp*.55||a.recalling)return false;
  const p=pers(a),iq=M().iqOf(a);
  // 對線時對手就在旁邊很正常：傳送仍可判斷；其他打法要身邊沒敵人
  const pl=!foesNear.length&&(assist(s,a,p,iq)||roam(s,a,p,iq)||lurk(s,a,p,iq)||ward(s,a,p,iq));
+ if(pl)tally(a,pl.kind);
  return pl&&a.tpAt==null?run(a,dt,foesNear):!!pl;}
+function tally(a,k){if(!a.player)return;const t=state.myPlays||(state.myPlays={});t[k]=(t[k]||0)+1;}
 // ---------- 打野挑哪一路 ----------
 function gankBonus(a,v,l){const s=state,m=M(),al=team(s,a.team).filter(b=>m.laneRoles(l).includes(b.role)),cc=al.filter(hasCC).length;
  return cc*.35+(hasMob(v)?-.45:.25)+(v.spells?.some(x=>x.id==='flash'&&x.cd<=0)?0:.2);}
 function onGank(a,v,l){const s=state,m=M(),al=team(s,a.team).filter(b=>m.laneRoles(l).includes(b.role)),cc=al.filter(hasCC).length,why=[];
- if(cc)why.push(`隊友有 ${cc} 個控場`);if(!hasMob(v))why.push(`${v.heroName} 沒有位移技`);if(!v.spells?.some(x=>x.id==='flash'&&x.cd<=0))why.push(`${v.heroName} 沒閃現`);if(v.hp<v.maxHp*.6)why.push(`${v.heroName} 血量偏低`);
+ if(cc)why.push(`隊友 ${cc} 控場`);if(!hasMob(v))why.push('對手沒位移');if(!v.spells?.some(x=>x.id==='flash'&&x.cd<=0))why.push('沒閃現');if(v.hp<v.maxHp*.6)why.push('殘血');
  const k='gp'+a.team;if(!why.length||(s[k]||-99)>s.time-50)return;s[k]=s.time;say('gankPlan',a,{victim:v.heroName,lane:LN[l],label:why.slice(0,2).join('、')});}
-window.PLAYS={hero,gankBonus,onGank,hasCC,hasMob,pers,traits};
+// ---------- 1.07 賽前情報：對手的固定個性 ----------
+const RN=['上路','打野','中路','射手','輔助'];
+function scout(){const s=state;if(!s||s.scouted)return;s.scouted=1;const me=s.actors.find(a=>a.player),e=me?1-me.team:1,rb=r=>ROLE_BASE[r]||ROLE_BASE[2];
+ const notes=s.actors.filter(a=>a.kind==='hero'&&a.team===e).map(a=>{const b=persBase(a).base;const [k,v]=Object.keys(TNAME).map(k=>[k,b[k]-rb(a.role)[k]]).sort((x,y)=>y[1]-x[1])[0];return {a,k,v};}).filter(x=>x.v>.12).sort((x,y)=>y.v-x.v).slice(0,3);
+ s.scoutInfo=notes.map(x=>({role:x.a.role,name:x.a.heroName,trait:x.k,text:`${RN[x.a.role]} ${x.a.heroName} ${TNAME[x.k]}`}));
+ if(notes.length){try{log('賽前情報：'+s.scoutInfo.map(x=>x.text).join('、'));}catch{}M().story('scout',e,{label:s.scoutInfo.map(x=>x.text).join('、')});}
+ const t=careerTag();if(t)try{log(`你的打法標籤：${t}`);}catch{}}
+const prevStart=start;start=function(){const r=prevStart.apply(this,arguments);try{scout();}catch(e){}return r;};
+// ---------- 1.07 生涯打法標籤 ----------
+function careerTag(){const c=window.CAREER?.data,t=c?.playTally;if(!t||(t.games||0)<5)return '';const g=t.games,role=['上路','打野','中路','射手','輔助'][c.role]||'';
+ const cand=[['游走型',(t.roam||0)/g/1.2],['傳送支援型',(t.tp||0)/g/1],['視野型',(t.ward||0)/g/4],['埋伏型',(t.ambush||0)/g/.8],['分推型',(t.split||0)/g/1.5]].sort((x,y)=>y[1]-x[1]);
+ return (cand[0][1]>=1?cand[0][0]:'穩健型')+role;}
+const prevFinish=finish;finish=function(){const s=state,c=window.CAREER?.data;const r=prevFinish.apply(this,arguments);
+ try{if(c&&s&&(s.careerMatchId||s.proGame)&&!s.tallied){s.tallied=1;const t=c.playTally||(c.playTally={games:0});t.games++;for(const [k,v] of Object.entries(s.myPlays||{}))t[k]=(t[k]||0)+v;
+  const me=s.actors.find(a=>a.player),st=me?myStyle(me):'auto';if(STYLE_TRAIT[st]){c.styleXP=c.styleXP||{};c.styleXP[st]=(c.styleXP[st]||0)+1;}window.CAREER.save?.();}}catch(e){}
+ return r;};
+window.PLAYS={hero,gankBonus,onGank,hasCC,hasMob,pers,persBase,traits,fitText,natureLine,careerTag,myStyle,TNAME};
 })();
