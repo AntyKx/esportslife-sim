@@ -46,7 +46,10 @@ function adj(key,v){if(v==null)return null;return Math.max(.15,Math.min(.8,sig((
 const TAGS={safe:'穩健',std:'標準',risky:'冒險'};
 function ring(od){if(!od||od.p==null)return od?.note?`<span class="od"><span class="od-txt">${od.note}</span></span>`:'';const v=Math.round(od.p*100);
  return `<span class="od"><i class="od-ring ${od.tag||'std'}" style="--p:${v}"><b>${v}%</b></i><span class="od-txt"><u class="od-tag ${od.tag||'std'}">${TAGS[od.tag||'std']}</u> 預估${od.what?`・${od.what}`:''}${od.note?`<br><small>${od.note}</small>`:''}</span></span>`;}
-const prevSD=showDecision;showDecision=function(type,title,text,opts,...rest){const r=prevSD.call(this,type,title,text,opts,...rest);
+const prevSD=showDecision;showDecision=function(type,title,text,opts,...rest){
+ // 1.16 標籤依預估成功率排序：最高＝穩健、最低＝冒險（玩家反映「冒險」的機率反而比「穩健」高，很矛盾）
+ try{const L=(opts||[]).filter(o=>o?.odds&&o.odds.p!=null).sort((x,y)=>y.odds.p-x.odds.p);if(L.length>=2)L.forEach((o,i)=>{o.odds.tag=i===0?'safe':i===L.length-1?'risky':'std';});}catch{}
+const r=prevSD.call(this,type,title,text,opts,...rest);
  (opts||[]).forEach(o=>{const od=o?.odds;if(!od||!od.c||od.p==null||o.__w)return;o.__w=1;const run=o.run;o.run=function(){const r=run.apply(this,arguments);try{watch({kind:od.judge||'fight',c:{x:od.c.x,y:od.c.y},obj:od.obj,secs:od.secs||16,until:state.time+(od.secs||60),choice:o.name,p:od.p,what:od.what,key:od.key});}catch{}return r;};});
  try{const bs=[...document.querySelectorAll('#decision .choice')];(opts||[]).forEach((o,i)=>{if(o?.odds&&bs[i]&&!bs[i].querySelector('.od'))bs[i].insertAdjacentHTML('beforeend',ring(o.odds));});}catch{}return r;};
 // ---------- 結果追蹤：預估 X% → 成功／失敗 ----------

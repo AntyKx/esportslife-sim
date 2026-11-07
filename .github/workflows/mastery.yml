@@ -1,0 +1,24 @@
+name: mastery
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: 每組場數
+        default: '150'
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        m: ['30', '50', '70']
+        old: ['', '1']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: simulate
+        run: |
+          M=${{ matrix.m }} OLD=${{ matrix.old }} node sim/mastery.cjs ${{ inputs.games }} 3 | tee r.json
+          cat r.json >> "$GITHUB_STEP_SUMMARY"
