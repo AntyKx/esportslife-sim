@@ -1,0 +1,29 @@
+name: parity
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: 每組場數
+        default: '25'
+jobs:
+  full:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: ['1', '2', '3', '4']
+        base: ['', '1']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: simulate
+        run: |
+          BASE=${{ matrix.base }} node sim/full.cjs ${{ inputs.games }} ${{ matrix.seed }} | tee result.json
+          echo "### seed ${{ matrix.seed }} base=${{ matrix.base }}" >> "$GITHUB_STEP_SUMMARY"
+          cat result.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: parity-${{ matrix.seed }}-b${{ matrix.base }}
+          path: result.json

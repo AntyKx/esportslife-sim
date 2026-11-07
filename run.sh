@@ -4,7 +4,7 @@
 set -e
 cd "$(dirname "$0")"
 SRC="../電競人生原型"
-for f in roster.js game.js battle.js rift.js rift-nav.js macro.js kits.js; do cp "$SRC/$f" engine/; done
+for f in roster.js game.js battle.js rift.js rift-nav.js macro.js kits.js equipment.js plays.js objectives.js; do cp "$SRC/$f" engine/; done
 sed "s#D=__dirname+'/..'#D=__dirname+'/../engine'#" "$SRC/.preview/report.cjs" > sim/report.cjs
 sed "s#D=__dirname+'/..'#D=__dirname+'/../engine'#" "$SRC/.preview/calib.cjs" > sim/calib.cjs
 git add -A
