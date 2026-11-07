@@ -59,7 +59,7 @@ function roam(s,a,p,iq){if(a.task?.kind!=='lane'||s.time<210||s.time>1150)return
  for(const l of [0,2]){if(a.role===4&&l===2)continue;const al=team(s,a.team).filter(b=>b!==a&&m.laneRoles(l).includes(b.role)&&b.task?.kind==='lane'),en=team(s,e).filter(b=>al.some(x=>D(x,b)<300));
   if(!al.length||!en.length)continue;const d=D(a,al[0]);if(d>950)continue;
   const low=en.filter(b=>b.hp<b.maxHp*.65).length,gk=s.ganking?.[a.team]&&s.ganking[a.team].until>s.time&&en.includes(s.ganking[a.team].victim)?1.5:0;
-  const v=low*.8+gk+(al.length>=en.length?.5:0)+(al.some(hasCC)?.3:0)-d/1400;if(v>bs){bs=v;best={l,ally:al[0],victim:en.sort((x,y)=>x.hp/x.maxHp-y.hp/y.maxHp)[0]};}}
+  const v=low*.8+gk+(al.length>=en.length?.5:0)+(al.some(hasCC)?.3:0)-d/1400+(window.__roamBias&&en.some(b=>b.player)?1.5:0);if(v>bs){bs=v;best={l,ally:al[0],victim:en.sort((x,y)=>x.hp/x.maxHp-y.hp/y.maxHp)[0]};}}
  if(!best||bs<.7||R()>p.roam*.6+iq*.3)return null;
  a.play={kind:'roam',until:s.time+24,target:best.victim,ally:best.ally,lane:best.l,from:s.time};say('roam',a,{lane:LN[best.l],victim:best.victim.heroName,label:a.role===2?'推完中路兵線':'離開下路'});return a.play;}
 function assist(s,a,p,iq){if(![2,4,0].includes(a.role)||s.time<150||(a.assistCD||0)>s.time||(s['as'+a.team]||0)>s.time)return null;const jg=team(s,a.team).find(b=>b.role===1&&b!==a);if(!jg||D(a,jg)>650)return null;

@@ -415,7 +415,7 @@ function keyMoment(s,p){if(s.time<150||s.time>1500||(s.eventCount||0)>=10||s.tim
    {name:'留在線上',desc:'相信打野自己處理，你繼續發育。',odds:OD('ivStay',inv[0],'skirm',{bring:[jg],away:[p]},'safe','打野自己撐住',{secs:25}),run:()=>{track('invaded','留在線上',25);}}]);return true;}
  // ⑥ 1.07 對方中路消失了（推完兵正往你這路游走）
  const emid=s.actors.find(b=>b.team===1&&b.role===2&&live(b));
- if(inLane&&lane!==1&&emid&&emid.play?.kind==='roam'&&emid.play.lane===lane&&dist(emid,p)>240&&dist(emid,p)<720&&!sees(0,emid)&&p.hp>p.maxHp*.4&&!cd('mm')){mark('mm',240);
+ if(inLane&&lane!==1&&emid&&emid.play?.kind==='roam'&&emid.play.lane===lane&&dist(emid,p)>240&&dist(emid,p)<720&&(!sees(0,emid)||distToLane(emid,1)>110)&&p.hp>p.maxHp*.4&&!cd('mm')){mark('mm',240);
   const mid={x:(p.x+emid.x)/2,y:(p.y+emid.y)/2},spot=wardTarget(p,mid),grp=[p,emid,foeHere?foe:null].filter(Boolean);
   showDecision('midMissing',`對方中路 ${emid.heroName} 從中路消失了！`,`${emid.heroName} 推完兵就不見了，很可能往${ROLE_ZH[p.role]}來。${foeHere?`你的對手 ${foe.heroName} 也在旁邊。`:''}${ward?'附近有我方的眼。':'這附近沒有視野。'}`,[
    {name:'先退到塔下',desc:'寧可少吃一波兵，也不給對方 2 打 1 的機會。',odds:OD('mmBack',ownTower(0,lane),'skirm',{bring:grp},'safe','被包夾時我方不吃虧',{secs:18}),run:()=>{p.orderBackUntil=s.time+16;track('midMissing','退到塔下',16);story('call',0,{label:`${p.heroName}：對面中路不見了，先退`});}},

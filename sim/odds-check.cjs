@@ -17,6 +17,8 @@ for(let g=0;g<N;g++){const ctx=harness(S0*7919+g*104729);
  vm.runInContext(`role=${g%5};{const pool=ROSTER.map((h,i)=>[h,i]).filter(([h])=>h.role===role).map(x=>x[1]);selected=pool[${(g*7+S0*3)}%pool.length];}start();`,ctx);
  // LANE=1：對方打野更常選你當目標（製造被 gank 的情境）
  if(process.env.LANE)vm.runInContext(`{const g=window.PLAYS.gankBonus;window.PLAYS.gankBonus=(a,v,l)=>g(a,v,l)+(v.player?2.5:0);}`,ctx);
+ // LANE=2：對方中路更愛往你這路游走、對方打野／輔助更愛做視野（製造「中路消失」「抓做視野的人」）
+ if(process.env.LANE==='2')vm.runInContext(`{window.__roamBias=1;const me=state.actors.find(a=>a.player);for(const a of state.actors)if(a.kind==='hero'&&a.team!==me.team){const p=window.PLAYS.persBase(a);if(a.role===2)p.roam=.95;if(a.role===1||a.role===4)p.vision=.95;}}`,ctx);
  for(let i=0;i<20000;i++){const s=vm.runInContext('state',ctx);if(!s||s.done)break;if(s.decision){const ch=s.decision.choices,sur=s.decision.type==='surrender';const k=sur?1:Math.floor(ctx.Math.random()*ch.length),c=ch[k];
    s.__dec=s.__dec||[];s.__dec.push({type:s.decision.type,name:c.name,p:c.odds?.p??null});s.decision=null;c.run();s.next=s.time+(process.env.LANE?15:210);}
   vm.runInContext('tick(.25)',ctx);
