@@ -443,7 +443,7 @@ events=function(){const s=state,p=s.actors.find(a=>a.player);if(!p||s.decision||
   const pCall=O?.adj('siege',O?.mix(f,O?.p('fight',hg,0,{me:'here',allies:'all'}),O?.p('fight',hg,0,{me:'here',allies:'none'}))),pSide=O?.adj('side',O?.p('skirm',sp,0,{me:'here'}));
   showDecision('siege','取得優勢，下一步？',`${buffLeft>60?`我方拿到深淵領主的增益，還剩 ${Math.round(buffLeft)} 秒。`:'我方剛推掉對方一座內塔。'}我方存活 ${aliveUs} 人，對方 ${s.actors.filter(a=>a.team&&live(a)).length} 人。隊友聽你喊話的機率約 ${pct(f)}。`,[
    {name:'我喊強攻高地',desc:'你帶頭往高地推，喊大家一起上；沒人跟就是你一個人。',odds:{p:pCall,tag:'risky',what:'高地交戰我方贏',note:`隊友聽你的約 ${pct(f)}`},run:()=>{if(Math.random()<f){s.teamOrder={mode:'siege',lane:l,until:s.time+60};story('call',0,{label:`${pl.heroName} 喊強攻高地，全隊跟上！`});}else story('call',0,{label:`${pl.heroName} 喊上高地，但隊友想先整理`});order('support',{x:hg.x,y:hg.y},40);O?.watch({kind:'fight',c:{x:hg.x,y:hg.y},secs:30,choice:'我喊強攻高地',p:pCall,what:'高地交戰'});}},
-   {name:`我去${LANE_NAME[l]}帶線`,desc:'你一個人去側路推進，吸引對手分兵。',odds:{p:pSide,tag:'std',what:'側路交手不吃虧'},run:()=>{pl.splitUntil=s.time+60;pl.splitLane=l;O?.watch({kind:'fight',c:sp,secs:30,choice:`我去${LANE_NAME[l]}帶線`,p:pSide,what:'側路交手'});}},
+   {name:`我去${LANE_NAME[l]}帶線`,desc:'你一個人去這一路推進，吸引對手分兵。',odds:{p:pSide,tag:'std',what:'帶線交手不吃虧'},run:()=>{pl.splitUntil=s.time+60;pl.splitLane=l;O?.watch({kind:'fight',c:sp,secs:30,choice:`我去${LANE_NAME[l]}帶線`,p:pSide,what:'側路交手'});}},
    {name:'我先回家補裝',desc:'回城把錢花掉，下一波再上；隊友自己決定。',odds:{note:'不參戰・補滿裝備'},run:()=>{pl.recalling=true;log('你先回城補裝。');}}]);return;}
  s.next=s.time+15;};
 // ---------- surrender-aware finish text ----------

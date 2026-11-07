@@ -35,7 +35,8 @@ const mix=(f,a,b)=>a==null||b==null?null:f*a+(1-f)*b;
 // 選項校正（雲端隨機對照實驗：每個選項隨機選 240～580 次，實際勝率 vs 原始預估，在 logit 上補差）
 const OFF={objGo:-.165,objStay:-.352,objCall:.209,join:-.084,engage:.611,retreat:-.117,side:.418,siege:.525};
 const logit=v=>Math.log(v/(1-v));
-function adj(key,v){if(v==null)return null;return Math.max(.06,Math.min(.9,sig(logit(Math.max(.02,Math.min(.98,v)))+(OFF[key]||0))));}
+// 第二輪驗證（新種子）：各選項誤差都在 ±5% 內，但 80% 以上和 10% 以下偏太自信 → logit 再乘 0.8，範圍限制在 15%～85%
+function adj(key,v){if(v==null)return null;return Math.max(.15,Math.min(.85,sig((logit(Math.max(.02,Math.min(.98,v)))+(OFF[key]||0))*.8)));}
 // ---------- 選項上的圓環 ----------
 const TAGS={safe:'穩健',std:'標準',risky:'冒險'};
 function ring(od){if(!od||od.p==null)return od?.note?`<span class="od"><span class="od-txt">${od.note}</span></span>`:'';const v=Math.round(od.p*100);
