@@ -307,7 +307,9 @@ bHero=function(a,dt){const s=state;syncSpells(a);
  if(!a.recalling&&s.time>=LVL1_END-10&&s.time<190&&s.time-(a.lastBack??-99)>45&&a.hp<a.maxHp*.72&&!foesNear.length&&!s.minions.some(m=>m.team!==a.team&&live(m)&&dist(m,a)<200)&&dist(a,home)>120){a.recalling=true;}
  if(a.hp<a.maxHp*(s.time<FORTIFY?.24:.32)||a.recalling){a.recalling=true;escape(a,foesNear);useSpells(a,null,foesNear.length>0);if(goHome(a,dt)){a.recalling=a.hp<a.maxHp*.95;}return;}
  // 0.86 玩家決策的指令：開團＝全隊衝向最近的敵人；支援＝玩家本人離線趕過去（原本只畫虛線，沒人照做）
- if(!a.team&&s.engageAll>s.time){const tg=s.actors.filter(b=>b.team===1&&live(b)&&sees(0,b)).sort((x,y)=>dist(x,a)-dist(y,a))[0];if(tg&&dist(a,tg)<650){if(dist(a,tg)<a.range+120&&skirmish(a,dt,a.range+120,true))return;moveTo(a,tg,dt,a.range*.8);return;}}
+ if(!a.team&&(s.engageAll>s.time||a.engageCall>s.time)){const tg=s.actors.filter(b=>b.team===1&&live(b)&&sees(0,b)).sort((x,y)=>dist(x,a)-dist(y,a))[0];if(tg&&dist(a,tg)<650){if(dist(a,tg)<a.range+120&&skirmish(a,dt,a.range+120,true))return;moveTo(a,tg,dt,a.range*.8);return;}}
+ if(a.player&&a.retreatUntil>s.time){escape(a,foesNear);moveTo(a,ownTower(a.team,laneOf(a))||home,dt);return;}
+ if(a.player&&a.splitUntil>s.time){if(foesNear.length&&skirmish(a,dt,a.range+60))return;laneBehaviour(a,a.splitLane??0,dt,'trade');return;}
  if(!a.team&&a.player&&s.order&&s.order.until>s.time&&s.order.kind==='push'&&a.task?.kind==='lane'){if(foesNear.length&&skirmish(a,dt,a.range+60))return;laneBehaviour(a,bLane(a.role),dt,'trade');return;}
  const od=!a.team&&a.player&&s.order&&s.order.until>s.time&&s.order.kind==='support'?s.order:null;
  if(od){if(od.track){if(live(od.track))od.point={x:od.track.x,y:od.track.y};else od.track=null;}const pt=od.point,near=dist(a,pt)<230;
@@ -420,22 +422,29 @@ events=function(){const s=state,p=s.actors.find(a=>a.player);if(!p||s.decision||
  if(s.macroEvents.surrender){s.macroEvents.surrender=false;showDecision('surrender','隊伍發起投降投票',`經濟落後 ${((s.gold[1]-s.gold[0])/1000).toFixed(1)}k，防禦建築也明顯落後。可以結束這場，或繼續尋找翻盤機會。`,[{name:'同意投降',desc:'本場判負，直接結束比賽。',run:()=>{s.surrender=0;s.winner=1;finish();}},{name:'拒絕，繼續守',desc:'守住高地，等對手失誤再打一波。',run:()=>{s.teamOrder={mode:'defend',point:s.cores[0],until:s.time+90};}},{name:'拒絕，四一分推拖時間',desc:'上路帶線牽制，其他人守中路。',run:()=>{s.teamOrder={mode:'41',until:s.time+120};}}]);return;}
  const no=nextObjective(0);
  if(no&&no.inT>20&&no.inT<=75&&!s.macroEvents['obj'+Math.round(no.o.respawn)]){s.macroEvents['obj'+Math.round(no.o.respawn)]=true;const o=no.o,name=o.name||'大型物件';
-  showDecision('objective',`${name} ${Math.ceil(no.inT)} 秒後出現`,`隊伍正在評估要不要爭奪。我方戰力約為對方的 ${Math.round(s.plan[0].P*100)}%，存活 ${s.actors.filter(a=>!a.team&&live(a)).length} 人對 ${s.actors.filter(a=>a.team&&live(a)).length} 人。`,[
-   {name:'先推線、佈眼，再爭奪',desc:'鄰近兩路先把兵推過去取得線權，打野和輔助進河道插眼、清眼。最穩的做法。',run:()=>{s.teamOrder={mode:'objective',obj:o,until:s.time+no.inT+50};order('contest',{x:o.x,y:o.y},no.inT+50);}},
-   {name:'直接集結開打',desc:'全隊馬上靠過去，搶在對手布置好之前開打；兵線可能吃虧。',run:()=>{s.teamOrder={mode:'objective',obj:o,until:s.time+no.inT+60};s.policyFightBoost=s.time+no.inT+60;order('contest',{x:o.x,y:o.y},no.inT+60);}},
-   {name:'放掉物件，換對面建築',desc:'不跟對手硬碰，帶兵線去另一側推塔，換取等價資源。',run:()=>{const l=o===s.dragon?0:2;s.teamOrder={mode:'trade',lane:l,until:s.time+no.inT+50};order('split',bPoint(l,.5),no.inT+50);}}]);return;}
+  const O=window.ODDS,f=O?O.follow():.6,pl=s.actors.find(a=>a.player),pct=v=>v==null?'—':Math.round(v*100)+'%',wt=Math.ceil(no.inT)+45,ln=bLane(pl.role);
+  const pGo=O?.p('obj',o,0,{me:'here'}),pAway=O?.p('obj',o,0,{me:'away'}),pAll=O?.p('obj',o,0,{me:'here',allies:'all'}),pCall=O?O.mix(f,pAll,pGo):null,W=(ch,pp)=>O?.watch({kind:'obj',obj:o,choice:ch,p:pp,what:`拿到${name}`,until:s.time+no.inT+75});
+  showDecision('objective',`${name} ${Math.ceil(no.inT)} 秒後出現`,`你要怎麼做？我方存活 ${s.actors.filter(a=>!a.team&&live(a)).length} 人對 ${s.actors.filter(a=>a.team&&live(a)).length} 人。隊友聽你喊話的機率約 ${pct(f)}。`,[
+   {name:`我去搶${name}`,desc:'放掉這波兵，趕到河道跟隊友會合。',odds:{p:pGo,tag:'std',what:`我方拿到${name}`},run:()=>{order('support',{x:o.x,y:o.y},wt);log(`你決定前往${name}。`);W(`我去搶${name}`,pGo);}},
+   {name:'我喊全隊集結',desc:`在語音喊大家先集合再一起打；沒人理就只有你過去。`,odds:{p:pCall,tag:'risky',what:`我方拿到${name}`,note:`隊友全跟 ${pct(pAll)}・沒人理 ${pct(pGo)}`},run:()=>{if(Math.random()<f){s.teamOrder={mode:'objective',obj:o,until:s.time+no.inT+60};s.policyFightBoost=s.time+no.inT+60;story('call',0,{label:`${pl.heroName}：全隊集合打${name}！隊友跟上了`});}else story('call',0,{label:`${pl.heroName} 喊集合打${name}，但隊友沒有回應`});order('support',{x:o.x,y:o.y},wt);W('我喊全隊集結',pCall);}},
+   {name:'我留線推塔，換資源',desc:`不去${name}，在${LANE_NAME[ln]}推線拿塔皮；隊友自己決定要不要打。`,odds:{p:pAway,tag:'safe',what:`隊友少你一人拿到${name}`},run:()=>{pl.splitUntil=s.time+wt;pl.splitLane=ln;log(`你留在${LANE_NAME[ln]}推線。`);W('我留線推塔，換資源',pAway);}}]);return;}
  const plan0=s.plan[0],us=s.actors.filter(a=>!a.team&&live(a)),them=s.actors.filter(a=>a.team&&live(a)&&sees(0,a));
  const pl=s.actors.find(a=>a.player);if(s.time>840&&us.length>=3&&them.length>=3&&pl&&live(pl)&&pl.hp>pl.maxHp*.4&&!s.macroEvents['fight'+Math.floor(s.time/240)]){const c={x:us.reduce((x,a)=>x+a.x,0)/us.length,y:us.reduce((x,a)=>x+a.y,0)/us.length},close=them.filter(a=>dist(a,c)<300).length;
-  if(close>=3&&dist(pl,c)<380){s.macroEvents['fight'+Math.floor(s.time/240)]=true;showDecision('teamfight','雙方主力正在對峙',`附近有 ${close} 名對手。我方戰力約為對方的 ${Math.round(plan0.P*100)}%。`,[
-   {name:'開團',desc:'前排先手，全隊跟進集火最近的目標。',run:()=>{s.teamOrder={mode:'group',until:s.time+25};s.policyFightBoost=s.time+25;s.engageAll=s.time+14;order('fight',{x:c.x,y:c.y},25);log('全隊開團！前排先手，集火最近的目標。');story('call',0,{label:'我方開團'});}},
-   {name:'拉扯消耗',desc:'保持距離消耗，等對手犯錯或關鍵技能交出再打。',run:()=>{s.teamOrder={mode:'group',until:s.time+25};s.policyFightSafe=s.time+25;order('fight',{x:c.x,y:c.y},25);}},
-   {name:'撤退到塔下',desc:'不接這波，退回防禦塔下重整。',run:()=>{const t=ownTower(0,1);s.teamOrder={mode:'defend',point:t,until:s.time+20};order('retreat',{x:t.x,y:t.y},20);}}]);return;}}
+  if(close>=3&&dist(pl,c)<380){s.macroEvents['fight'+Math.floor(s.time/240)]=true;const O=window.ODDS,f=O?O.follow():.6,pct=v=>v==null?'—':Math.round(v*100)+'%';
+  const pJoin=O?.p('fight',c,0,{me:'here'}),pAll=O?.p('fight',c,0,{me:'here',allies:'all'}),pAlone=O?.p('fight',c,0,{me:'here',allies:'none'}),pCall=O?O.mix(f,pAll,pAlone):null,pAway=O?.p('fight',c,0,{me:'away'}),W=(ch,pp)=>O?.watch({kind:'fight',c:{x:c.x,y:c.y},secs:22,choice:ch,p:pp,what:'這波交戰'});
+  showDecision('teamfight','雙方主力正在對峙',`附近有 ${close} 名對手。你要怎麼做？隊友聽你喊話的機率約 ${pct(f)}。`,[
+   {name:'我先手開團',desc:'你第一個衝進去，喊隊友跟上。',odds:{p:pCall,tag:'risky',what:'這波我方贏',note:`隊友全跟 ${pct(pAll)}・沒人跟 ${pct(pAlone)}`},run:()=>{pl.engageCall=s.time+14;let n=0;for(const b of us)if(!b.player&&dist(b,c)<700&&Math.random()<f){b.engageCall=s.time+14;n++;}log(n?`你開團，${n} 名隊友跟上！`:'你開團，但隊友沒有跟上。');story('call',0,{label:n>=2?`${pl.heroName} 開團，${n} 名隊友跟上！`:n?`${pl.heroName} 開團，只有 1 名隊友跟上`:`${pl.heroName} 開團，但隊友沒有跟`});W('我先手開團',pCall);}},
+   {name:'我跟著隊友打',desc:'站在隊友身邊，等前排先手再輸出。',odds:{p:pJoin,tag:'std',what:'這波我方贏'},run:()=>{order('support',{x:c.x,y:c.y},22);W('我跟著隊友打',pJoin);}},
+   {name:'我不接，退到塔下',desc:'你先撤，隊友自己決定要不要打。',odds:{p:pAway,tag:'safe',what:'隊友少你一人也贏'},run:()=>{pl.retreatUntil=s.time+18;log('你先退到塔下。');W('我不接，退到塔下',pAway);}}]);return;}}
  const innerN=s.structures.filter(t=>t.team===1&&t.kind==='tower'&&t.tier>=1&&t.hp<=0).length;if(innerN>(s._innerN||0)){s._innerN=innerN;s._innerAt=s.time;}
  const buffLeft=s.heroBuff[0]-s.time,freshTower=s.time-(s._innerAt??-99)<40,aliveUs=s.actors.filter(a=>!a.team&&live(a)).length;
- if((buffLeft>60||freshTower)&&aliveUs>=3&&live(s.actors.find(a=>a.player))&&!s.macroEvents['push'+Math.floor(s.time/300)]){s.macroEvents['push'+Math.floor(s.time/300)]=true;showDecision('siege','取得優勢，下一步？',`${buffLeft>60?`我方拿到深淵領主的增益，還剩 ${Math.round(buffLeft)} 秒。`:'我方剛推掉對方一座內塔。'}我方存活 ${aliveUs} 人，對方 ${s.actors.filter(a=>a.team&&live(a)).length} 人。`,[
-   {name:'強攻高地',desc:'帶兵線直接推高地塔與兵營；人數不足時風險高。',run:()=>{const l=weakestLane(0);s.teamOrder={mode:'siege',lane:l,until:s.time+60};order('split',bPoint(l,.75),60);}},
-   {name:'回家整理再上',desc:'先回城補裝備，下一波兵線再推。',run:()=>{s.teamOrder={mode:'defend',point:s.cores[0],until:s.time+25};order('farm',{x:s.cores[0].x,y:s.cores[0].y},25);}},
-   {name:'四一分推',desc:'上路帶線牽制，其他四人在中路施壓。',run:()=>{s.teamOrder={mode:'41',until:s.time+90};order('split',bPoint(0,.6),90);}}]);return;}
+ if((buffLeft>60||freshTower)&&aliveUs>=3&&live(s.actors.find(a=>a.player))&&!s.macroEvents['push'+Math.floor(s.time/300)]){s.macroEvents['push'+Math.floor(s.time/300)]=true;const O=window.ODDS,f=O?O.follow():.6,pct=v=>v==null?'—':Math.round(v*100)+'%',pl=s.actors.find(a=>a.player),l=weakestLane(0),sp=bPoint(l,.72);
+  const hg=s.structures.filter(t=>t.team===1&&t.hp>0&&(t.kind==='inhibitor'||t.kind==='tower'&&t.tier>=1)).sort((a,b)=>dist(a,pl)-dist(b,pl))[0]||bBase(1);
+  const pAll=O?.p('fight',hg,0,{me:'here',allies:'all'}),pAlone=O?.p('fight',hg,0,{me:'here',allies:'none'}),pCall=O?O.mix(f,pAll,pAlone):null,pSide=O?.p('skirm',sp,0,{me:'here'});
+  showDecision('siege','取得優勢，下一步？',`${buffLeft>60?`我方拿到深淵領主的增益，還剩 ${Math.round(buffLeft)} 秒。`:'我方剛推掉對方一座內塔。'}我方存活 ${aliveUs} 人，對方 ${s.actors.filter(a=>a.team&&live(a)).length} 人。隊友聽你喊話的機率約 ${pct(f)}。`,[
+   {name:'我喊強攻高地',desc:'你帶頭往高地推，喊大家一起上；沒人跟就是你一個人。',odds:{p:pCall,tag:'risky',what:'高地交戰我方贏',note:`隊友全跟 ${pct(pAll)}・沒人跟 ${pct(pAlone)}`},run:()=>{if(Math.random()<f){s.teamOrder={mode:'siege',lane:l,until:s.time+60};story('call',0,{label:`${pl.heroName} 喊強攻高地，全隊跟上！`});}else story('call',0,{label:`${pl.heroName} 喊上高地，但隊友想先整理`});order('support',{x:hg.x,y:hg.y},40);O?.watch({kind:'fight',c:{x:hg.x,y:hg.y},secs:30,choice:'我喊強攻高地',p:pCall,what:'高地交戰'});}},
+   {name:`我去${LANE_NAME[l]}帶線`,desc:'你一個人去側路推進，吸引對手分兵。',odds:{p:pSide,tag:'std',what:'側路交手不吃虧'},run:()=>{pl.splitUntil=s.time+60;pl.splitLane=l;O?.watch({kind:'fight',c:sp,secs:30,choice:`我去${LANE_NAME[l]}帶線`,p:pSide,what:'側路交手'});}},
+   {name:'我先回家補裝',desc:'回城把錢花掉，下一波再上；隊友自己決定。',odds:{note:'不參戰・補滿裝備'},run:()=>{pl.recalling=true;log('你先回城補裝。');}}]);return;}
  s.next=s.time+15;};
 // ---------- surrender-aware finish text ----------
 const baseFinish=finish;finish=function(){const s=state;baseFinish();if(s&&s.surrender!=null){const r=document.querySelector('#result');if(r&&r.innerHTML)r.innerHTML=r.innerHTML.replace(/<h2>[^<]*<\/h2><p>[^<]*<\/p>/,`<h2>${s.winner===0?'VICTORY · 對手投降':'DEFEAT · 投降'}</h2><p>${s.surrender?'赤潮':'逐光'}在落後明顯時發起投降。</p>`);}};

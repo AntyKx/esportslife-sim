@@ -1,0 +1,29 @@
+name: oddscheck
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: 每組場數
+        default: '25'
+jobs:
+  data:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: ['1', '2', '3', '4', '5', '6', '7', '8']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: collect
+        run: |
+          node sim/odds-check.cjs ${{ inputs.games }} ${{ matrix.seed }} | tee summary.json
+          cat summary.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: check-${{ matrix.seed }}
+          path: |
+            check.json
+            summary.json
