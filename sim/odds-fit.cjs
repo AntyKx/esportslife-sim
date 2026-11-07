@@ -14,11 +14,14 @@ function fit(X,Y,l2=.02,it=3000,lr=.15){const d=X[0].length;let w=new Array(d+1)
  const W=w.slice(1).map((v,j)=>v/sd[j]),b=w[0]-W.reduce((s,v,j)=>s+v*mu[j],0);return {b,W};}
 const pred=(m,x)=>sig(m.b+x.reduce((s,v,j)=>s+v*m.W[j],0));
 function report(kind,rs){const F=r=>r.x.slice(0,14);const test=rs.filter(r=>r.g%5===0),train=rs.filter(r=>r.g%5!==0);
- const m=fit(train.map(F),train.map(r=>r.y));const P=test.map(r=>pred(m,F(r))),Y=test.map(r=>r.y);
+ const m0=fit(train.map(F),train.map(r=>r.y));
+ // 信心校正（Platt）：在訓練集上再擬合 z'=a·z+c，修正整體太保守或太自信
+ const zs=train.map(r=>[m0.b+F(r).reduce((q,v,j)=>q+v*m0.W[j],0)]),pc=fit(zs,train.map(r=>r.y),0,2000,.3),A=pc.W[0],C=pc.b;
+ const m={b:A*m0.b+C,W:m0.W.map(v=>A*v),scale:A};const P=test.map(r=>pred(m,F(r))),Y=test.map(r=>r.y);
  const base=Y.reduce((s,y)=>s+y,0)/Y.length,brier=P.reduce((s,p,i)=>s+(p-Y[i])**2,0)/P.length,brier0=Y.reduce((s,y)=>s+(base-y)**2,0)/Y.length;
  const bins=[...Array(10)].map((_,b)=>{const idx=P.map((p,i)=>[p,i]).filter(([p])=>p>=b/10&&p<(b+1)/10);if(!idx.length)return null;const pm=idx.reduce((s,[p])=>s+p,0)/idx.length,ym=idx.reduce((s,[,i])=>s+Y[i],0)/idx.length;return {bin:`${b*10}-${b*10+10}%`,n:idx.length,pred:+(pm*100).toFixed(1),real:+(ym*100).toFixed(1),err:+((ym-pm)*100).toFixed(1)};}).filter(Boolean);
  const acc=P.filter((p,i)=>(p>.5)===(Y[i]===1)).length/P.length;
- return {kind,n:rs.length,train:train.length,test:test.length,brier:+brier.toFixed(4),brier0:+brier0.toFixed(4),acc:+(acc*100).toFixed(1),bins,model:{b:+m.b.toFixed(4),W:m.W.map(v=>+v.toFixed(4))},weights:Object.fromEntries(NAMES.map((n,j)=>[n,+m.W[j].toFixed(3)]))};}
+ return {kind,scale:+m.scale.toFixed(3),n:rs.length,train:train.length,test:test.length,brier:+brier.toFixed(4),brier0:+brier0.toFixed(4),acc:+(acc*100).toFixed(1),bins,model:{b:+m.b.toFixed(4),W:m.W.map(v=>+v.toFixed(4))},weights:Object.fromEntries(NAMES.map((n,j)=>[n,+m.W[j].toFixed(3)]))};}
 const out={};for(const k of ['fight','skirm','obj']){const rs=rows.filter(r=>r.k===k);if(rs.length<50)continue;out[k]=report(k,rs);}
 fs.writeFileSync('odds-model.json',JSON.stringify(Object.fromEntries(Object.entries(out).map(([k,v])=>[k,v.model]))));
 for(const v of Object.values(out)){console.log(`\n== ${v.kind} n=${v.n}（測試 ${v.test}）準確率 ${v.acc}%  Brier ${v.brier}（全猜平均 ${v.brier0}）`);for(const b of v.bins)console.log(`  ${b.bin.padEnd(8)} n=${String(b.n).padStart(4)} 預估 ${b.pred}% 實際 ${b.real}% 誤差 ${b.err>0?'+':''}${b.err}`);console.log('  權重',JSON.stringify(v.weights));}
