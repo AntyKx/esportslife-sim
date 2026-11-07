@@ -39,7 +39,7 @@ function fitText(){const s=state,a=s?.actors?.find(x=>x.player);if(!a)return '';
  const ups=Object.entries(STYLE_T[st]||{}).filter(([k,tg])=>tg>persBase(a).base[k]);if(!ups.length)return '這個打法很好上手。';
  const f=Math.min(...ups.map(([k])=>fitOf(persBase(a).base[k])));return f>=.8?'✓ 這個打法合你的本性，可以完整發揮。':f>=.6?'△ 跟你的本性有點距離，效果打折；常用會慢慢習慣。':'✗ 跟你的本性很不合，效果大打折扣；常用才會慢慢改變。';}
 const TNAME={roam:'愛游走',vision:'重視野',lurk:'愛蹲草',tp:'愛傳送支援'};
-function natureLine(a){const b=persBase(a).base,rb=ROLE_BASE[a.role]||ROLE_BASE[2];const top=Object.keys(TNAME).map(k=>[k,b[k]-rb[k]]).sort((x,y)=>y[1]-x[1])[0];return top&&top[1]>.08?TNAME[top[0]]:'各方面平均';}
+function natureLine(a){const b=persBase(a).base,rb=ROLE_BASE[a.role]||ROLE_BASE[2];const top=Object.keys(TNAME).filter(k=>k!=='tp'||a.role===0).map(k=>[k,b[k]-rb[k]]).sort((x,y)=>y[1]-x[1])[0];return top&&top[1]>.08?TNAME[top[0]]:'各方面平均';}
 function ops(a){const k=(typeof ROSTER!=='undefined'?ROSTER:window.ROSTER)?.[a.heroIndex]?.kit;if(!k)return [];return ['s','w','e'].flatMap(x=>k[x]?.ops||[]);}
 const hasCC=a=>ops(a).some(o=>['stun','root','up'].includes(o[0]));
 const hasMob=a=>ops(a).some(o=>o[0]==='dash'||o[0]==='blink');
@@ -110,7 +110,7 @@ function run(a,dt,foesNear){const s=state,m=M(),pl=a.play,e=1-a.team;
    endPlay(a);return false;}
   return true;}// 靜靜蹲著
  endPlay(a);return false;}
-function hero(a,dt,task,foesNear){const s=state;if(!s||s.time<60||!M()?.moveTo)return false;
+function hero(a,dt,task,foesNear){const s=state;if(s&&!s.scouted)try{scout();}catch(e){s.scouted=1;}if(!s||s.time<60||!M()?.moveTo)return false;
  if(a.play&&(s.time>a.play.until||a.recalling)){endPlay(a);}
  if(a.play)return run(a,dt,foesNear);
  // 傳送每秒判斷一次（戰鬥很短，錯過就沒了）；其他打法 2.5～5 秒想一次
@@ -134,11 +134,11 @@ function onGank(a,v,l){const s=state,m=M(),al=team(s,a.team).filter(b=>m.laneRol
 // ---------- 1.07 賽前情報：對手的固定個性 ----------
 const RN=['上路','打野','中路','射手','輔助'];
 function scout(){const s=state;if(!s||s.scouted)return;s.scouted=1;const me=s.actors.find(a=>a.player),e=me?1-me.team:1,rb=r=>ROLE_BASE[r]||ROLE_BASE[2];
- const notes=s.actors.filter(a=>a.kind==='hero'&&a.team===e).map(a=>{const b=persBase(a).base;const [k,v]=Object.keys(TNAME).map(k=>[k,b[k]-rb(a.role)[k]]).sort((x,y)=>y[1]-x[1])[0];return {a,k,v};}).filter(x=>x.v>.12).sort((x,y)=>y.v-x.v).slice(0,3);
+ const notes=s.actors.filter(a=>a.kind==='hero'&&a.team===e).map(a=>{const b=persBase(a).base;const [k,v]=Object.keys(TNAME).filter(k=>k!=='tp'||a.role===0).map(k=>[k,b[k]-rb(a.role)[k]]).sort((x,y)=>y[1]-x[1])[0];return {a,k,v};}).filter(x=>x.v>.12).sort((x,y)=>y.v-x.v).slice(0,3);
  s.scoutInfo=notes.map(x=>({role:x.a.role,name:x.a.heroName,trait:x.k,text:`${RN[x.a.role]} ${x.a.heroName} ${TNAME[x.k]}`}));
  if(notes.length){try{log('賽前情報：'+s.scoutInfo.map(x=>x.text).join('、'));}catch{}M().story('scout',e,{label:s.scoutInfo.map(x=>x.text).join('、')});}
  const t=careerTag();if(t)try{log(`你的打法標籤：${t}`);}catch{}}
-const prevStart=start;start=function(){const r=prevStart.apply(this,arguments);try{scout();}catch(e){}return r;};
+// （career.js 會把 start 換成生涯按鈕用的版本，所以改在第一次思考時做賽前情報）
 // ---------- 1.07 生涯打法標籤 ----------
 function careerTag(){const c=window.CAREER?.data,t=c?.playTally;if(!t||(t.games||0)<5)return '';const g=t.games,role=['上路','打野','中路','射手','輔助'][c.role]||'';
  const cand=[['游走型',(t.roam||0)/g/1.2],['傳送支援型',(t.tp||0)/g/1],['視野型',(t.ward||0)/g/4],['埋伏型',(t.ambush||0)/g/.8],['分推型',(t.split||0)/g/1.5]].sort((x,y)=>y[1]-x[1]);

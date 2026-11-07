@@ -33,9 +33,11 @@ function p(kind,c,team=0,o={}){const m=MODEL[kind];if(!m||!state||!M())return nu
 function follow(){const c=window.CAREER?.data,s=state;if(!c||!(s?.careerMatchId||s?.proGame))return .6;const tr=c.trust??50,fame=Math.min(.15,(c.fans||0)/4000);return Math.max(.2,Math.min(.92,.3+(tr-30)/100+fame));}
 const mix=(f,a,b)=>a==null||b==null?null:f*a+(1-f)*b;
 // 選項校正（雲端隨機對照實驗：每個選項隨機選 240～580 次，實際勝率 vs 原始預估，在 logit 上補差）
-const OFF={objGo:-.165,objStay:-.352,objCall:.209,join:-.084,engage:.611,retreat:-.117,side:.418,siege:.525};
+// 第三輪（7500 次）再微調：帶線 +、強攻高地 −、留線 −、搶龍 +
+const OFF={objGo:-.02,objStay:-.52,objCall:.24,join:-.084,engage:.69,retreat:-.15,side:.85,siege:.19};
 // 個人時刻（對線、被抓、野區、守家、對手中路消失）的補差：先由雲端隨機對照實驗量出，填在這裡
-const OFF2={};
+// 樣本 ≥40 的直接用實測補差；樣本少的依 n/(n+60) 打折，避免被少數幾場帶偏（對線類事件在模擬裡很少觸發）
+const OFF2={bdFight:1.09,bdHold:.53,ivGo:.32,ivStay:.47,llJg:-.3,gwBack:.16,gwJg:-.18,gwStay:-.07,joGo:-.09,llBack:-.45,lwHelp:-.13,bdHunt:.34,lwDive:0,mmBack:0,mmWard:0,mmJg:0,whLurk:0,bdSteal:0};
 const logit=v=>Math.log(v/(1-v));
 // 第二輪驗證（新種子）：各選項誤差都在 ±5% 內，但 80% 以上和 10% 以下偏太自信 → logit 再乘 0.8，範圍限制在 15%～85%
 function adj(key,v){if(v==null)return null;return Math.max(.15,Math.min(.85,sig((logit(Math.max(.02,Math.min(.98,v)))+(OFF[key]??OFF2[key]??0))*.8)));}
