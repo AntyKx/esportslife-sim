@@ -34,7 +34,7 @@ function follow(){const c=window.CAREER?.data,s=state;if(!c||!(s?.careerMatchId|
 const mix=(f,a,b)=>a==null||b==null?null:f*a+(1-f)*b;
 // 選項校正（雲端隨機對照實驗：每個選項隨機選 240～580 次，實際勝率 vs 原始預估，在 logit 上補差）
 // 第三輪（7500 次）再微調：帶線 +、強攻高地 −、留線 −、搶龍 +
-const OFF={objGo:-.02,objStay:-.52,objCall:.24,join:-.084,engage:.69,retreat:-.15,side:.57,siege:.51};
+const OFF={objGo:-.02,objStay:-.52,objCall:.24,join:-.084,engage:.38,retreat:-.15,side:.57,siege:.51};
 // 個人時刻（對線、被抓、野區、守家、對手中路消失）的補差：先由雲端隨機對照實驗量出，填在這裡
 // 樣本 ≥40 的直接用實測補差；樣本少的依 n/(n+60) 打折，避免被少數幾場帶偏（對線類事件在模擬裡很少觸發）
 // 1.07 對線類補資料（雲端 LANE 模式 1200 場）：被 gank、對線優劣勢、打野幫忙各 88～1028 筆
