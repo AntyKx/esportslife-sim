@@ -13,5 +13,7 @@ const out={n:all.length,percentiles:{p10:pct(10),p25:pct(25),p50:pct(50),p65:pct
  avgParts:Object.fromEntries(['ladder','academy','pro','honor','fans'].map(k=>[k,avg(k)])),
  avgYears:+(all.reduce((a,r)=>a+r.years,0)/all.length).toFixed(1),avgGames:Math.round(all.reduce((a,r)=>a+r.games,0)/all.length),
  byWorlds:by(r=>r.worlds),byTitles:by(r=>Math.min(6,r.titles)),byRegion:by(r=>r.region),
+ endAge:by(r=>r.age),endPath:all.reduce((o,r)=>(o[r.path]=(o[r.path]||0)+1,o),{}),
+ ratingByAge:(()=>{const m={};all.forEach(r=>(r.rt||[]).forEach(x=>{if(Array.isArray(x))(m[x[0]]||=[]).push(x[1]);}));return Object.fromEntries(Object.entries(m).map(([k,v])=>[k,{n:v.length,avg:+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1)}]));})(),
  errors:all.length?undefined:'no data'};
 console.log(JSON.stringify(out,null,1));

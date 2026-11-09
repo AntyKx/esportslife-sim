@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>電競人生 後台統計</title>
+<style>
+body{margin:0;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:#f4f1ea;color:#1d2433}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:6px 0 2px}.muted{color:#7b8191;font-size:13px}
+.big{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.big div{flex:1;min-width:140px;background:#fffdf8;border:1px solid #e3dccb;border-radius:12px;padding:12px}.big b{display:block;font-size:30px}
+section{background:#fffdf8;border:1px solid #e3dccb;border-radius:12px;padding:12px;margin:12px 0}
+h2{font-size:16px;margin:0 0 8px}
+.bar{display:grid;grid-template-columns:110px 1fr 54px;gap:8px;align-items:center;font-size:13px;margin:4px 0}.bar i{display:block;height:12px;border-radius:6px;background:#2f6f86}
+.days{display:flex;align-items:flex-end;gap:3px;height:110px}.days i{flex:1;background:#c99a2e;border-radius:3px 3px 0 0;min-height:2px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}td,th{padding:4px 6px;border-bottom:1px solid #eee;text-align:left}
+</style></head><body><main>
+<h1>電競人生 後台統計</h1><p class="muted">人生完成紀錄（匿名，不含名字）。1.33 上線後開始記錄，另補送玩家裝置上「過往人生」的舊紀錄。</p>
+<div class="big"><div>完成人生<b id="tot">—</b></div><div>今天<b id="today">—</b></div><div>近 7 天<b id="w7">—</b></div><div>打上職業比例<b id="prorate">—</b></div></div>
+<section><h2>近 30 天每日完成</h2><div class="days" id="days"></div><p class="muted" id="dayRange"></p></section>
+<section><h2>結局</h2><div id="path"></div></section>
+<section><h2>天賦等級（括號內為打上職業比例）</h2><div id="tier"></div></section>
+<section><h2>退役／結束年齡</h2><div id="age"></div></section>
+<section><h2>位置</h2><div id="role"></div></section>
+<section><h2>最近 50 筆</h2><table id="recent"></table></section>
+</main><script>/* @license 電競人生 Esports Life (c) 2026 Anty. All rights reserved. Official: https://esports.bearledger.app/ */
+const e=t=>String(t??"").replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[t])),bars=(t,n,r=t=>t,d=()=>"")=>{const o=Object.entries(n).sort((t,n)=>n[1]-t[1]),a=Math.max(1,...o.map(t=>t[1]));document.getElementById(t).innerHTML=o.map(([t,n])=>`<div class="bar"><span>${e(r(t))}</span><i style="width:${n/a*100}%"></i><b>${n}${d(t)}</b></div>`).join("")||'<p class="muted">還沒有資料</p>'};fetch("/api/life-stats").then(t=>t.json()).then(t=>{document.getElementById("tot").textContent=t.total;const n=t.days||[];document.getElementById("today").textContent=n[0]?.[1]??0,document.getElementById("w7").textContent=n.slice(0,7).reduce((t,n)=>t+n[1],0);const r=Object.values(t.tierPro||{}).reduce((t,n)=>t+n,0),d=Object.entries(t.tier||{}).filter(([t])=>"?"!==t).reduce((t,[,n])=>t+n,0);document.getElementById("prorate").textContent=d?Math.round(r/d*100)+"%":"—";const o=Math.max(1,...n.map(t=>t[1]));document.getElementById("days").innerHTML=[...n].reverse().map(([t,n])=>`<i title="${t}：${n}" style="height:${n/o*100}%"></i>`).join(""),document.getElementById("dayRange").textContent=n.length?`${n.at(-1)[0]} ～ ${n[0][0]}`:"",bars("path",t.path);const a=["C","B","A","S"];bars("tier",t.tier,t=>"?"===t?"舊紀錄（無資料）":"天賦 "+(a[t]||t),n=>{const r=t.tier[n],d=t.tierPro?.[n];return"?"!==n&&r?`（${Math.round((d||0)/r*100)}%）`:""}),bars("age",Object.fromEntries(Object.entries(t.age||{}).sort((t,n)=>t[0]-n[0])),t=>t+" 歲");const i=["上路","打野","中路","射手","輔助"];bars("role",t.role,t=>i[t]||"未知"),document.getElementById("recent").innerHTML="<tr><th>時間</th><th>結局</th><th>年齡</th><th>生涯分</th><th>天賦</th><th>冠軍</th><th>版本</th></tr>"+(t.recent||[]).map(t=>`<tr><td>${new Date(t.t).toLocaleString("zh-TW",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}</td><td>${e(t.path)}</td><td>${t.age??""}</td><td>${t.score??""}</td><td>${null!=t.tier?a[t.tier]:""}</td><td>${t.titles||""}</td><td>${e(t.ver)}</td></tr>`).join("")}).catch(()=>{document.querySelector("main").insertAdjacentHTML("beforeend","<p>讀取失敗</p>")});</script></body></html>

@@ -5,6 +5,9 @@ on:
       per:
         description: 每個分片的生涯數
         default: '15'
+      noretire:
+        description: 不主動退役（打到沒人要）
+        default: '1'
 jobs:
   shard:
     runs-on: ubuntu-latest
@@ -22,7 +25,7 @@ jobs:
         run: |
           cd career/game && (python3 -m http.server 8893 --bind 127.0.0.1 >/dev/null 2>&1 &) && cd ../..
           sleep 2
-          CHROME=$(which google-chrome || which chromium) node career/career-sim.cjs ${{ inputs.per }} result-${{ matrix.shard }}.json | tail -n 40
+          NORETIRE=${{ inputs.noretire == '1' && '1' || '' }} CHROME=$(which google-chrome || which chromium) node career/career-sim.cjs ${{ inputs.per }} result-${{ matrix.shard }}.json | tail -n 40
       - uses: actions/upload-artifact@v4
         with:
           name: career-${{ matrix.shard }}

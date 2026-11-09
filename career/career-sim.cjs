@@ -12,14 +12,14 @@ useBrowser(async({run,wait,sleep,errors})=>{
    LADDER.data.peak=5+Math.floor(R()*4);c.results=Array.from({length:6},()=>({rating:+(6.4+R()*1.8).toFixed(1)}));c.finalist=R()<.5;c.champion=c.finalist&&R()<.5;
    c.age=18;c.stage='complete';c.promoChecked=true;CAREER.save();renderSetup();
    document.querySelector('[data-full="0"]').click();
-   const retireAge=26+Math.floor(R()*6);let steps=0;
+   const retireAge=${process.env.NORETIRE?99:'26+Math.floor(R()*6)'};let steps=0;
    const q=s=>document.querySelector(s);
    while(steps++<6000){const p=CAREER.data.pro;if(!p||p.ended)break;
     let b=q('[data-event]')||q('#proFfClose')||q('#proSimRest')||q('#proBenchSim')||q('#proSimSeries');
     if(!b&&(q('#proNextYear')||q('[data-offer]')||q('#proRetire'))){
      if(CAREER.data.age>=retireAge&&q('#proRetire'))b=q('#proRetire');
      else if(q('[data-offer]')){const os=[...document.querySelectorAll('[data-offer]')];b=os[0];}
-     else b=q('#proNextYear')||q('#proRetire');if(b&&b.id==='proNextYear')(window.__rt||=[]).push(WORLD.userRating());}
+     else b=q('#proNextYear')||q('#proRetire');if(b&&b.id==='proNextYear')(window.__rt||=[]).push([CAREER.data.age,WORLD.userRating()]);}
     if(!b)b=q('#proFF')||q('#proWeek');
     if(!b)return {err:'stuck',html:(q('#careerHub')?.innerText||'').slice(0,300)};
     b.click();if(steps%40===0)await new Promise(r=>setTimeout(r,0));}
@@ -27,7 +27,7 @@ useBrowser(async({run,wait,sleep,errors})=>{
    const ach=p.achievements||[];
    return {steps,score:S.sc,parts:S.parts,tier:T.n,age:CAREER.data.age,years:p.year-2026,games:p.games,region:WORLD.team(p.team)?.region,
     titles:ach.filter(a=>/冠軍$/.test(a.title)).length,worlds:ach.filter(a=>/世界大賽 冠軍/.test(a.title)).length,
-    ach:ach.map(a=>a.year+' '+a.title),seasons:Object.values(p.seasons||{}).map(s=>[s.g,+(s.s/s.g).toFixed(2)]),rating:WORLD.userRating(),rt:window.__rt,pot:CAREER.data.pot,potBoost:CAREER.data.potBoost||0,ttier:CAREER.data.talent?.tier,ended:!!p.ended};
+    ach:ach.map(a=>a.year+' '+a.title),seasons:Object.values(p.seasons||{}).map(s=>[s.g,+(s.s/s.g).toFixed(2)]),rating:WORLD.userRating(),rt:window.__rt,pot:CAREER.data.pot,potBoost:CAREER.data.potBoost||0,ttier:CAREER.data.talent?.tier,ended:!!p.ended,path:p.ended?.path,growth:CAREER.data.growth,decay:CAREER.data.decay};
   })()`);
   r.sec=Math.round((Date.now()-t0)/1000);res.push(r);console.log(JSON.stringify(r));
   if(outFile)fs.writeFileSync(outFile,JSON.stringify(res));

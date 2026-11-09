@@ -1,0 +1,7 @@
+*{-webkit-tap-highlight-color:transparent}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{overscroll-behavior-y:none}
+button,a,input,select,label,summary,[role=button],[data-hero]{touch-action:manipulation}
+button,summary,.mh-row,.mh-rail,.dx-tile,.cast-champion{-webkit-user-select:none;user-select:none}
+dialog,.life-dialog,.mh-body,.mh-drawer,.lc-list,#heroes{overscroll-behavior:contain}
+body.tg-lock{position:fixed!important;left:0;right:0;width:100%;overflow:hidden!important}

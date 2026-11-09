@@ -1,4 +1,3 @@
-/* Palette reaches the interior of each screen, while world and team colors retain their gameplay meaning. */
 .match-equipment>.overview-details[hidden]{display:none!important}
 body[data-theme]:not([data-theme=classic]){--surface:color-mix(in srgb,var(--team-bg) 88%,#fff);--surface-raised:color-mix(in srgb,var(--team-bg) 75%,#fff);--surface-soft:color-mix(in srgb,var(--team-bg) 94%,#fff);--text:#f0edf0;--muted:#bcb7c1;--line:color-mix(in srgb,var(--life-blue) 32%,#ffffff30);color-scheme:dark;color:var(--text)}
 body[data-theme]:not([data-theme=classic]) :is(header.life-header,.panel,.careerwelcome,.life-dialog,#artbook,.arena,.overview-details,.overview-bar,#equippedItems,.match-equipment,.action-dock){background:var(--surface);color:var(--text);border-color:var(--line)}

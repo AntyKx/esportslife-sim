@@ -1,8 +1,5 @@
-/* 0.90 比賽畫面版面修正：計分板不被切、兩側選手卡不重疊 */
-/* 計分板：高度跟著內容，不再固定 8.5% 被裁掉隊名與比分 */
 .broadcast-stage .cast-top{height:auto!important;min-height:0!important;overflow:visible!important;padding:2px 0}
 .broadcast-stage .cast-team{padding:3px 12px}
-/* 兩側選手卡：名字一行、位置＋KDA 同一行、血條一行；卡片高度跟著內容，不再被壓扁後文字溢出 */
 .broadcast-stage .cast-roster{justify-content:flex-start}
 .broadcast-stage .cast-champion,.broadcast-stage .cast-right .cast-champion{flex:0 1 auto!important;height:auto!important;max-height:none!important;min-height:0!important;overflow:hidden;padding:5px 6px!important;align-items:center}
 .broadcast-stage .cast-champion>div{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:4px;row-gap:2px;align-items:center}
@@ -13,9 +10,43 @@
 .broadcast-stage .cast-right .cast-champion>div{grid-template-columns:auto minmax(0,1fr)}
 .broadcast-stage .cast-right .cast-champion>div>small{grid-column:2}
 .broadcast-stage .cast-right .cast-champion>div>em{grid-column:1}
-/* 近景時地圖外的底色改深色，避免白邊 */
 .broadcast-stage.zoomed canvas{background:#0f1a1f}
-/* 資源倒數標籤放在計分板下方，不壓到計分板 */
 .broadcast-stage .cast-resources{z-index:4}
 @media (min-width:761px) and (min-height:601px){.broadcast-stage .cast-resources{top:64px!important}}
 @media (max-width:760px){#zoomBack{top:auto!important;bottom:8px!important;right:8px!important}}
+.cast-champion canvas{background:radial-gradient(circle at 50% 35%,#2c4350,#14222a)!important;border:1px solid #ffffff1a!important}
+.cast-right .cast-champion canvas{background:radial-gradient(circle at 50% 35%,#4a2c30,#22141a)!important}
+.cast-roster.roster-strip{position:static!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;width:auto!important;height:auto!important;top:auto!important;bottom:auto!important;margin:6px 0}
+.cast-roster.roster-strip .cast-champion,.cast-roster.roster-strip.cast-right .cast-champion{display:flex!important;flex-direction:column!important;align-items:center;gap:2px;height:auto!important;padding:4px 2px!important;text-align:center!important;border-radius:10px!important;border-left-width:1px!important;border-right-width:1px!important}
+.cast-roster.roster-strip .cast-champion canvas{float:none!important;width:30px!important;height:36px!important;margin:0!important}
+.cast-roster.roster-strip .cast-champion>div{display:block!important;width:100%}
+.cast-roster.roster-strip .cast-champion strong{font-size:11px!important;line-height:1.2;white-space:normal!important;overflow:hidden;display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-all;min-height:2.4em}
+.cast-roster.roster-strip .cast-champion small{display:none!important}
+.cast-roster.roster-strip .cast-champion em{display:block;font-size:10px!important}
+.cast-roster.roster-strip .cast-champion .cast-health{display:block;margin-top:2px}
+.cast-roster.roster-strip#castBlueRoster .cast-champion{border-top:3px solid #76c5d6!important}
+.cast-roster.roster-strip#castRedRoster .cast-champion{border-bottom:3px solid #dc8d84!important}
+@media (max-width:760px){
+#match .cast-camera-tools{flex-wrap:wrap!important;overflow:visible!important}
+#match .speed-tools{display:flex!important;flex-wrap:wrap!important;gap:6px!important;width:100%;overflow:visible!important}
+#match .speed-tools>button,#match .speed-tools>*{flex:1 1 auto;min-width:0;padding:6px 8px!important;font-size:13px!important;white-space:nowrap}
+}
+body.match-mobile #kofiHome{display:none}
+.broadcast-stage .cast-top,.overview-arena .broadcast-stage .cast-top,body[data-theme] .broadcast-stage .cast-top{background:linear-gradient(180deg,rgba(18,30,40,.94),rgba(9,16,22,.94))!important;border:1px solid color-mix(in srgb,var(--life-gold,#d6b46a) 45%,transparent)!important;border-top:0!important;border-radius:0 0 16px 16px!important;box-shadow:0 6px 20px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06)!important;overflow:hidden!important;backdrop-filter:blur(4px)}
+.broadcast-stage .cast-top::before,.broadcast-stage .cast-top::after{content:'';position:absolute;top:0;bottom:0;width:38%;pointer-events:none}
+.broadcast-stage .cast-top::before{left:0;background:linear-gradient(90deg,rgba(64,150,220,.32),transparent)}
+.broadcast-stage .cast-top::after{right:0;background:linear-gradient(270deg,rgba(220,80,80,.32),transparent)}
+.broadcast-stage .cast-top>*{position:relative;z-index:1}
+.broadcast-stage .cast-team{border:0!important}
+.broadcast-stage .cast-team.blue{box-shadow:inset 4px 0 0 #4fb3ff}
+.broadcast-stage .cast-team.redteam{box-shadow:inset -4px 0 0 #ff6b6b}
+.broadcast-stage .cast-team small{color:rgba(220,230,240,.55)!important;letter-spacing:2px}
+.broadcast-stage .cast-team strong{color:#8fd0ff!important;text-shadow:0 0 12px rgba(79,179,255,.45);font-weight:900}
+.broadcast-stage .cast-team.redteam strong{color:#ff9a9a!important;text-shadow:0 0 12px rgba(255,107,107,.45)}
+.broadcast-stage .cast-team span{color:rgba(232,220,190,.8)!important}
+.broadcast-stage .cast-score>b{color:#cfeaff!important;text-shadow:0 0 14px rgba(79,179,255,.7);font-weight:900;font-variant-numeric:tabular-nums}
+.broadcast-stage .cast-score>b:last-child{color:#ffd6d6!important;text-shadow:0 0 14px rgba(255,107,107,.7)}
+.broadcast-stage .cast-score>span{background:rgba(255,255,255,.06);border:1px solid color-mix(in srgb,var(--life-gold,#d6b46a) 35%,transparent);border-radius:999px;padding:2px 10px}
+.broadcast-stage .cast-score small{color:color-mix(in srgb,var(--life-gold,#d6b46a) 70%,#fff)!important;font-weight:800;font-variant-numeric:tabular-nums}
+.broadcast-stage .cast-score i{color:rgba(220,230,240,.5)!important}
+.broadcast-stage .cast-resources span,body[data-theme] .broadcast-stage .cast-resources span{background:rgba(10,18,24,.85)!important;border:1px solid color-mix(in srgb,var(--life-gold,#d6b46a) 40%,transparent)!important;color:color-mix(in srgb,var(--life-gold,#d6b46a) 70%,#fff)!important;border-radius:999px!important}
