@@ -15,13 +15,16 @@ useBrowser(async({run,wait,sleep,errors})=>{
    const retireAge=${process.env.NORETIRE?99:'26+Math.floor(R()*6)'};let steps=0;
    const q=s=>document.querySelector(s);
    while(steps++<6000){const p=CAREER.data.pro;if(!p||p.ended)break;
-    let b=q('[data-event]')||q('#proFfClose')||q('#proSimRest')||q('#proBenchSim')||q('#proSimSeries');
+    const pickR=sel=>{const L=[...document.querySelectorAll(sel)].filter(x=>!x.disabled);return L.length?L[Math.floor(R()*L.length)]:null;};
+    let b=pickR('dialog[open] [data-ev]')||q('dialog[open] [data-cer]')||pickR('[data-event]')||pickR('[data-osev]')||pickR('[data-ospr]')||pickR('[data-scrim]')||q('[data-win="stay"]')||pickR('[data-win]')
+     ||q('#proFfClose')||q('#proSimRest')||q('#proBenchSim')||q('#proSimSeries')||q('#proSimGame');
     if(!b&&(q('#proNextYear')||q('[data-offer]')||q('#proRetire'))){
      if(CAREER.data.age>=retireAge&&q('#proRetire'))b=q('#proRetire');
      else if(q('[data-offer]')){const os=[...document.querySelectorAll('[data-offer]')];b=os[0];}
      else b=q('#proNextYear')||q('#proRetire');if(b&&b.id==='proNextYear')(window.__rt||=[]).push([CAREER.data.age,WORLD.userRating()]);}
-    if(!b)b=q('#proFF')||q('#proWeek');
-    if(!b)return {err:'stuck',html:(q('#careerHub')?.innerText||'').slice(0,300)};
+    if(!b)b=q('#proFFYear')||q('#proFF')||q('#proWeek');
+    if(!b){document.querySelectorAll('dialog[open]').forEach(d=>d.close());b=q('#proFFYear')||q('#proFF')||q('#proWeek');}
+    if(!b)return {err:'stuck',btns:[...document.querySelectorAll('#careerHub button,dialog[open] button')].map(x=>(x.id||'')+'|'+[...x.attributes].map(a=>a.name).filter(n=>n.startsWith('data-')).join(',')+'|'+x.textContent.trim().slice(0,12)).slice(0,30),html:(q('#careerHub')?.innerText||'').slice(0,200)};
     b.click();if(steps%40===0)await new Promise(r=>setTimeout(r,0));}
    const p=CAREER.data.pro,S=SCORE.calc(),T=SCORE.tierInfo();
    const ach=p.achievements||[];
