@@ -1,0 +1,28 @@
+name: football
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: 每國段數
+        default: '600'
+jobs:
+  fate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        c: ['WORLD', 'BR', 'AR', 'EN', 'JP', 'US', 'NG', 'TW', 'IN']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm i --no-save jsdom@24.1.3
+      - name: simulate
+        run: |
+          node football/fate.cjs ${{ matrix.c }} ${{ inputs.games }} | tee result.json
+          echo '```' >> "$GITHUB_STEP_SUMMARY"; cat result.json >> "$GITHUB_STEP_SUMMARY"; echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fate-${{ matrix.c }}
+          path: result.json

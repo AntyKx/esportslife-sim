@@ -321,7 +321,10 @@ bHero=function(a,dt){const s=state;syncSpells(a);
  if(!a.team&&a.player&&s.order&&s.order.until>s.time&&s.order.kind==='push'&&a.task?.kind==='lane'){if(foesNear.length&&skirmish(a,dt,a.range+60))return;laneBehaviour(a,bLane(a.role),dt,'trade');return;}
  const od=!a.team&&a.player&&s.order&&s.order.until>s.time&&s.order.kind==='support'?s.order:null;
  if(od){if(od.track){if(live(od.track))od.point={x:od.track.x,y:od.track.y};else od.track=null;}const pt=od.point,near=dist(a,pt)<230;
-  if(foesNear.length&&skirmish(a,dt,near?260:a.range+60,near))return;if(dist(a,pt)>45){moveTo(a,pt,dt,30);return;}}
+  /* 1.28 指令的保命判斷：敵人比我方多、或殘血還被圍，就放棄指令先撤（之前會一個人在龍坑來回抖到死） */
+  const al=s.actors.filter(b=>b.team===a.team&&b!==a&&live(b)&&b.kind!=='minion'&&dist(b,a)<420).length,fo=foesNear.filter(b=>b.kind!=='minion').length;
+  if(fo&&(fo>al+1||a.hp<a.maxHp*.45&&fo>al)){s.order=null;a.retreatUntil=s.time+10;log(fo>al+1?'敵人太多，你先撤退。':'血量太低，你先撤退。');escape(a,foesNear);moveTo(a,ownTower(a.team,laneOf(a))||home,dt);return;}
+  if(foesNear.length&&skirmish(a,dt,near?260:a.range+60,near))return;if(near&&foesNear.length){escape(a,foesNear);return;}if(dist(a,pt)>45){moveTo(a,pt,dt,30);return;}}
  // 1.05 各位置自己的判斷（plays.js）：游走、傳送支援、做視野、蹲草
  if(window.PLAYS&&!(a.player&&(s.order?.until>s.time||s.momentTrack&&s.momentTrack.until>s.time))&&!(!a.team&&s.teamOrder&&s.teamOrder.until>s.time)){try{if(window.PLAYS.hero(a,dt,task,foesNear))return;}catch(e){console.warn(e);}}
  // after a reset, teleport back if the job is far away
